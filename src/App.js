@@ -63,13 +63,11 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (scriptData.length > 0 && currentCharacter) {
-      const allRomaji = getAllRomaji(scriptData);
-      const newAnswers = generateAnswers(currentCharacter.romaji, allRomaji);
-      setAnswers(newAnswers);
-      setSelectedAnswer(null);
-    }
-  }, [currentCharacter, currentScript]);
+    const allRomaji = getAllRomaji(scriptData);
+    const newAnswers = generateAnswers(currentCharacter.romaji, allRomaji);
+    setAnswers(newAnswers);
+    setSelectedAnswer(null);
+  }, [currentCharacter, currentScript, scriptData]);
 
   const ProgressBar = ({ progress }) => (
     <div className="w-full bg-gray-300 h-1 rounded-lg overflow-hidden mb-1">
