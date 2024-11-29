@@ -96,16 +96,38 @@ const Learn = () => {
           </Link>
         </header>
 
-        <div className="grid gap-6">
-          {/* Sélecteur de script */}
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-all border border-gray-700">
-            <ScriptSelector
-              currentScript={currentScript}
-              onScriptChange={handleScriptChange}
-            />
-            <div className="mt-4">
-              <p className="text-gray-300 mb-2">Niveau {currentLevel + 1}</p>
-              <ProgressBar progress={levelProgress} />
+        <div className="grid gap-4">
+          {/* Sélecteur de script - Version plus compacte */}
+          <div className="bg-gray-800 p-4 rounded-lg shadow-lg hover:shadow-xl transition-all border border-gray-700">
+            <div className="flex bg-slate-800 rounded-md overflow-hidden w-full">
+              <button
+                onClick={() => handleScriptChange("hiragana")}
+                className={`flex-1 py-2 text-sm text-center transition-colors ${
+                  currentScript === "hiragana" ? "bg-slate-700" : ""
+                }`}
+              >
+                Hiragana
+              </button>
+              <button
+                onClick={() => handleScriptChange("katakana")}
+                className={`flex-1 py-2 text-sm text-center transition-colors ${
+                  currentScript === "katakana" ? "bg-slate-700" : ""
+                }`}
+              >
+                Katakana
+              </button>
+            </div>
+            <div className="mt-2">
+              <div className="flex justify-between items-center text-sm mb-1">
+                <p className="text-gray-400">Niveau {currentLevel + 1}</p>
+                <p className="text-gray-400">{levelProgress}%</p>
+              </div>
+              <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-blue-500 h-full transition-all duration-300 ease-in-out"
+                  style={{ width: `${levelProgress}%` }}
+                />
+              </div>
             </div>
           </div>
 
