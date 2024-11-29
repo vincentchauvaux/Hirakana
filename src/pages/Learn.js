@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import Header from "../components/Header";
+import { Link } from "react-router-dom";
 import ScriptSelector from "../components/ScriptSelector";
 import CharacterDisplay from "../components/CharacterDisplay";
 import AnswerGrid from "../components/AnswerGrid";
 import { hiragana, katakana, getAllRomaji } from "../data";
 import { generateAnswers } from "../utils";
+import { Settings } from "lucide-react";
 
 const Learn = () => {
   const [currentScript, setCurrentScript] = useState("hiragana");
@@ -71,36 +72,69 @@ const Learn = () => {
   }, [currentCharacter, currentScript, scriptData]);
 
   const ProgressBar = ({ progress }) => (
-    <div className="w-full bg-gray-300 h-1 rounded-lg overflow-hidden mb-1">
+    <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
       <div
-        className="bg-blue-500 h-full transition-all"
+        className="bg-blue-500 h-full transition-all duration-300 ease-in-out"
         style={{ width: `${progress}%` }}
       />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8 flex flex-col items-center">
-      <Header />
-      <ScriptSelector
-        currentScript={currentScript}
-        onScriptChange={handleScriptChange}
-      />
-      <ProgressBar progress={levelProgress} />
-      {currentCharacter ? (
-        <CharacterDisplay character={currentCharacter} />
-      ) : (
-        <div className="text-center text-red-500">
-          Aucun caractère disponible. Veuillez vérifier les données.
-        </div>
-      )}
+    <div className="min-h-screen bg-gray-900 text-gray-100">
+      <div className="container mx-auto px-4 py-8">
+        <header className="flex justify-between items-center mb-8 w-full">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-blue-500 hover:text-blue-400 transition-colors"
+          >
+            <span className="text-2xl">←</span>
+            <span className="text-2xl font-bold">Retour</span>
+          </Link>
+          <Link to="/settings">
+            <Settings className="w-6 h-6 text-gray-300 cursor-pointer hover:text-white transition-colors" />
+          </Link>
+        </header>
 
-      <AnswerGrid
-        answers={answers}
-        onAnswerSelect={handleAnswerSelect}
-        selectedAnswer={selectedAnswer}
-        correctAnswer={currentCharacter.romaji}
-      />
+        <div className="grid gap-6">
+          {/* Sélecteur de script */}
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-all border border-gray-700">
+            <ScriptSelector
+              currentScript={currentScript}
+              onScriptChange={handleScriptChange}
+            />
+            <div className="mt-4">
+              <p className="text-gray-300 mb-2">Niveau {currentLevel + 1}</p>
+              <ProgressBar progress={levelProgress} />
+            </div>
+          </div>
+
+          {/* Zone de jeu */}
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-all border border-gray-700">
+            <div className="flex flex-col items-center">
+              {currentCharacter ? (
+                <>
+                  <div className="mb-8 transform hover:scale-105 transition-transform">
+                    <CharacterDisplay character={currentCharacter} />
+                  </div>
+                  <div className="w-full max-w-2xl">
+                    <AnswerGrid
+                      answers={answers}
+                      onAnswerSelect={handleAnswerSelect}
+                      selectedAnswer={selectedAnswer}
+                      correctAnswer={currentCharacter.romaji}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-red-400 p-4 bg-red-900 bg-opacity-50 rounded-lg">
+                  Aucun caractère disponible. Veuillez vérifier les données.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

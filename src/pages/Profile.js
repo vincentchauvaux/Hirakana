@@ -1,77 +1,98 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 const Profile = () => {
-  // Données factices pour la démonstration
   const userStats = {
     daysStreak: 5,
     totalCharactersLearned: 25,
     accuracy: 85,
-    timeSpent: '12h30',
+    timeSpent: "12h30",
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <Link to="/" className="text-blue-600 hover:text-blue-800">
-            ← Retour
+    <div className="min-h-screen bg-gray-900 text-gray-100">
+      <div className="container mx-auto px-4 py-8">
+        <header className="flex justify-between items-center mb-8 w-full">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-blue-500 hover:text-blue-400 transition-colors"
+          >
+            <span className="text-2xl">←</span>
+            <span className="text-2xl font-bold">Retour</span>
           </Link>
-          <h1 className="text-3xl font-bold text-center text-gray-800">Profil</h1>
-          <div className="w-20"></div>
-        </div>
+          <Link to="/settings">
+            <Settings className="w-6 h-6 text-gray-300 cursor-pointer hover:text-white transition-colors" />
+          </Link>
+        </header>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6">
           {/* Informations personnelles */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Informations personnelles</h2>
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-all border border-gray-700">
+            <h2 className="text-xl font-semibold mb-4 text-gray-100">
+              Informations personnelles
+            </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-center mb-6">
-                <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
-                  <span className="text-2xl text-gray-600">👤</span>
+                <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors">
+                  <span className="text-4xl">👤</span>
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-gray-600">Nom d'utilisateur</p>
-                <p className="font-medium text-gray-800">Utilisateur</p>
+                <p className="text-gray-400">Nom d'utilisateur</p>
+                <p className="text-gray-100 font-medium">Utilisateur</p>
               </div>
               <div className="space-y-2">
-                <p className="text-gray-600">Email</p>
-                <p className="font-medium text-gray-800">utilisateur@example.com</p>
+                <p className="text-gray-400">Email</p>
+                <p className="text-gray-100 font-medium">
+                  utilisateur@example.com
+                </p>
               </div>
-              <button className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+              <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors mt-4">
                 Modifier le profil
               </button>
             </div>
           </div>
 
           {/* Statistiques */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Statistiques d'apprentissage</h2>
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-all border border-gray-700">
+            <h2 className="text-xl font-semibold mb-4 text-gray-100">
+              Statistiques d'apprentissage
+            </h2>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600 text-sm">Série actuelle</p>
-                <p className="text-2xl font-bold text-blue-600">{userStats.daysStreak} jours</p>
+              <div className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-all">
+                <p className="text-gray-400 text-sm">Série actuelle</p>
+                <p className="text-2xl font-bold text-blue-400">
+                  {userStats.daysStreak} jours
+                </p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600 text-sm">Caractères appris</p>
-                <p className="text-2xl font-bold text-green-600">{userStats.totalCharactersLearned}</p>
+              <div className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-all">
+                <p className="text-gray-400 text-sm">Caractères appris</p>
+                <p className="text-2xl font-bold text-green-400">
+                  {userStats.totalCharactersLearned}
+                </p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600 text-sm">Précision</p>
-                <p className="text-2xl font-bold text-purple-600">{userStats.accuracy}%</p>
+              <div className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-all">
+                <p className="text-gray-400 text-sm">Précision</p>
+                <p className="text-2xl font-bold text-purple-400">
+                  {userStats.accuracy}%
+                </p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600 text-sm">Temps total</p>
-                <p className="text-2xl font-bold text-orange-600">{userStats.timeSpent}</p>
+              <div className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-all">
+                <p className="text-gray-400 text-sm">Temps total</p>
+                <p className="text-2xl font-bold text-orange-400">
+                  {userStats.timeSpent}
+                </p>
               </div>
             </div>
 
-            {/* Graphique de progression (à implémenter plus tard) */}
+            {/* Graphique de progression */}
             <div className="mt-6">
-              <h3 className="text-lg font-medium mb-2 text-gray-800">Progression hebdomadaire</h3>
-              <div className="bg-gray-50 h-48 rounded-lg flex items-center justify-center">
-                <p className="text-gray-600">Graphique à venir</p>
+              <h3 className="text-lg font-medium mb-2 text-gray-100">
+                Progression hebdomadaire
+              </h3>
+              <div className="bg-gray-700 h-48 rounded-lg flex items-center justify-center hover:bg-gray-600 transition-colors">
+                <p className="text-gray-400">Graphique à venir</p>
               </div>
             </div>
           </div>
