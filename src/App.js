@@ -1,107 +1,95 @@
-import React, { useState, useEffect } from "react";
-import Header from "./components/Header";
-import ScriptSelector from "./components/ScriptSelector";
-import CharacterDisplay from "./components/CharacterDisplay";
-import AnswerGrid from "./components/AnswerGrid";
-import { hiragana, katakana, getAllRomaji } from "./data";
-import { generateAnswers } from "./utils";
-const App = () => {
-  const [currentScript, setCurrentScript] = useState("hiragana");
-  const [currentCharacterIndex, setCurrentCharacterIndex] = useState(0);
-  const [answers, setAnswers] = useState([]);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [currentLevel, setCurrentLevel] = useState(0); // Niveau actuel
-  const [correctAnswers, setCorrectAnswers] = useState(0); // Réponses correctes du niveau
-  const [levelProgress, setLevelProgress] = useState(0); // Progression en pourcentage
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./components/auth/AuthContext";
+import Dashboard from "./pages/Dashboard";
+import Calendar from "./pages/Calendar";
+import Profile from "./pages/Profile";
+import Learn from "./pages/Learn";
+import Settings from "./pages/Settings";
+import Login from "./components/auth/Login";
+import Register from "./components/auth/Register";
 
-  const scriptData = currentScript === "hiragana" ? hiragana : katakana;
-  const rowsOrder = ["a", "k", "sh", "ts", "n"]; // Ordre des rangées
-  const unlockedCharacters = scriptData.filter(
-    (char) => rowsOrder.indexOf(char.row) <= currentLevel
-  );
+// Composant pour les routes protégées
+const PrivateRoute = ({ children }) => {
+  const { currentUser, loading } = useAuth();
+  const location = useLocation();
 
-  const currentCharacter =
-    unlockedCharacters.length > 0
-      ? unlockedCharacters[currentCharacterIndex]
-      : null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-100">Chargement...</div>
+      </div>
+    );
+  }
 
-  const handleScriptChange = (script) => {
-    setCurrentScript(script);
-    setCurrentLevel(0); // Réinitialiser au niveau 0
-    setCorrectAnswers(0); // Réinitialiser le score
-    setLevelProgress(0); // Réinitialiser la progression
-    setCurrentCharacterIndex(0); // Réinitialiser l'indice au premier caractère
-  };
+  if (!currentUser) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
-  const handleAnswerSelect = (answer) => {
-    setSelectedAnswer(answer);
-    if (answer === currentCharacter.romaji) {
-      setCorrectAnswers((prev) => prev + 1); // Incrémenter les réponses correctes
-      setLevelProgress(
-        Math.round(((correctAnswers + 1) / unlockedCharacters.length) * 100)
-      );
-
-      if (correctAnswers + 1 === unlockedCharacters.length) {
-        setCurrentLevel((prev) => prev + 1); // Passer au niveau suivant
-        setCorrectAnswers(0); // Réinitialiser le score
-        setLevelProgress(0); // Réinitialiser la barre de progression
-      }
-
-      setTimeout(() => {
-        if (unlockedCharacters.length > 0) {
-          setCurrentCharacterIndex(
-            Math.floor(Math.random() * unlockedCharacters.length)
-          );
-        }
-        setSelectedAnswer(null);
-      }, 400);
-    } else {
-      setTimeout(() => {
-        setSelectedAnswer(null);
-      }, 800);
-    }
-  };
-
-  useEffect(() => {
-    const allRomaji = getAllRomaji(scriptData);
-    const newAnswers = generateAnswers(currentCharacter.romaji, allRomaji);
-    setAnswers(newAnswers);
-    setSelectedAnswer(null);
-  }, [currentCharacter, currentScript, scriptData]);
-
-  const ProgressBar = ({ progress }) => (
-    <div className="w-full bg-gray-300 h-1 rounded-lg overflow-hidden mb-1">
-      <div
-        className="bg-blue-500 h-full transition-all"
-        style={{ width: `${progress}%` }}
-      />
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-slate-900 text-white p-8 flex flex-col items-center">
-      <Header />
-      <ScriptSelector
-        currentScript={currentScript}
-        onScriptChange={handleScriptChange}
-      />
-      <ProgressBar progress={levelProgress} />
-      {currentCharacter ? (
-        <CharacterDisplay character={currentCharacter} />
-      ) : (
-        <div className="text-center text-red-500">
-          Aucun caractère disponible. Veuillez vérifier les données.
-        </div>
-      )}
-
-      <AnswerGrid
-        answers={answers}
-        onAnswerSelect={handleAnswerSelect}
-        selectedAnswer={selectedAnswer}
-        correctAnswer={currentCharacter.romaji}
-      />
-    </div>
-  );
+  return children;
 };
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Routes publiques */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Routes protégées */}
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/learn"
+            element={
+              <PrivateRoute>
+                <Learn />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <PrivateRoute>
+                <Calendar />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}
 
 export default App;
