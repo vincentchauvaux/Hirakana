@@ -1,0 +1,14 @@
+# Production VPS — Nginx reverse proxy (chemin /hirakana), écoute locale uniquement.
+# Usage : docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_BASE_PATH: /hirakana/
+    container_name: hirakana-web
+    ports:
+      - "127.0.0.1:3020:80"
+    restart: unless-stopped

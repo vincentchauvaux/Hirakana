@@ -1,0 +1,19 @@
+# HiraKata — snippet Nginx (HTTPS, hostname OVH)
+# À inclure dans le server {} de vps-e09ed6db.vps.ovh.net (à côté de streamTv /app, rpg-cr).
+#
+# Installation :
+#   sudo cp deploy/nginx-hirakana.conf.example /etc/nginx/snippets/hirakana.conf
+#   # Dans le bloc server HTTPS :
+#   include snippets/hirakana.conf;
+#   sudo nginx -t && sudo systemctl reload nginx
+
+location = /hirakana {
+    return 301 $scheme://$host/hirakana/;
+}
+
+location /hirakana/ {
+    proxy_pass http://127.0.0.1:3020/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
