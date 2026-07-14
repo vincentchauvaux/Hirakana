@@ -46,7 +46,8 @@ hirakana/
 - **Quiz** : 6 réponses romaji (1 correcte + 5 leurres)
 - **Progression** : chaque caractère du niveau doit être trouvé une fois ; passage au niveau suivant automatique
 - **Fin** : écran de félicitations + bascule vers l'autre script
-- **Reset** : bouton ↺ dans l'en-tête (par script)
+- **Reset** : bouton ↺ dans l'en-tête (script courant) ; panneau **Préférences** (⚙) pour reset par script ou global
+- **Préférences** : nombre de propositions (4 ou 6), persistées dans `localStorage`
 
 ## Bugs corrigés (v1)
 

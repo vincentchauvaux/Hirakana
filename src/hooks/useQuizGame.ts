@@ -32,7 +32,7 @@ function saveProgress(progress: GameProgress) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
 }
 
-export function useQuizGame() {
+export function useQuizGame(answerCount: 4 | 6 = 6) {
   const [progress, setProgress] = useState<GameProgress>(loadProgress);
   const [currentScript, setCurrentScript] = useState<ScriptId>("hiragana");
   const [currentCharacter, setCurrentCharacter] = useState<KanaCharacter | null>(
@@ -68,10 +68,24 @@ export function useQuizGame() {
       saveProgress(next);
       return next;
     });
+    if (script === currentScript) {
+      setCurrentCharacter(null);
+      setSelectedAnswer(null);
+      setIsLocked(false);
+    }
+  }, [currentScript]);
+
+  const resetAllProgress = useCallback(() => {
+    setProgress(DEFAULT_PROGRESS);
+    saveProgress(DEFAULT_PROGRESS);
+    setCurrentCharacter(null);
+    setSelectedAnswer(null);
+    setIsLocked(false);
   }, []);
 
   const handleScriptChange = useCallback((script: ScriptId) => {
     setCurrentScript(script);
+    setCurrentCharacter(null);
     setSelectedAnswer(null);
     setIsLocked(false);
   }, []);
@@ -105,9 +119,9 @@ export function useQuizGame() {
     }
 
     const allRomaji = getAllRomaji(scriptData);
-    setAnswers(generateAnswers(currentCharacter.romaji, allRomaji));
+    setAnswers(generateAnswers(currentCharacter.romaji, allRomaji, answerCount));
     setSelectedAnswer(null);
-  }, [currentCharacter, scriptData]);
+  }, [answerCount, currentCharacter, scriptData]);
 
   const handleAnswerSelect = useCallback(
     (answer: string) => {
@@ -192,5 +206,6 @@ export function useQuizGame() {
     handleScriptChange,
     handleAnswerSelect,
     resetScriptProgress,
+    resetAllProgress,
   };
 }

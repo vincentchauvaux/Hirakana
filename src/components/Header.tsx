@@ -2,10 +2,15 @@ import { RotateCcw, Settings2 } from "lucide-react";
 
 interface HeaderProps {
   onReset: () => void;
+  onOpenSettings: () => void;
   showReset: boolean;
 }
 
-export default function Header({ onReset, showReset }: HeaderProps) {
+export default function Header({
+  onReset,
+  onOpenSettings,
+  showReset,
+}: HeaderProps) {
   return (
     <header className="flex justify-between items-center mb-6 w-full max-w-md">
       <div className="flex items-center gap-2">
@@ -29,7 +34,15 @@ export default function Header({ onReset, showReset }: HeaderProps) {
             <RotateCcw className="w-5 h-5" />
           </button>
         )}
-        <Settings2 className="w-5 h-5 text-slate-500" aria-hidden />
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors"
+          title="Préférences"
+          aria-label="Ouvrir les préférences"
+        >
+          <Settings2 className="w-5 h-5" />
+        </button>
       </div>
     </header>
   );
