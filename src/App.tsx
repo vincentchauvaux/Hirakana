@@ -4,7 +4,6 @@ import ScriptSelector from "./components/ScriptSelector";
 import CharacterDisplay from "./components/CharacterDisplay";
 import AnswerGrid from "./components/AnswerGrid";
 import AnswerInput from "./components/AnswerInput";
-import FeedbackResult from "./components/FeedbackResult";
 import ProgressBar from "./components/ProgressBar";
 import CompletionScreen from "./components/CompletionScreen";
 import SettingsPanel from "./components/SettingsPanel";
@@ -90,23 +89,19 @@ export default function App() {
               className="w-full max-w-md flex flex-col items-center"
             >
               <CharacterDisplay character={currentCharacter} />
-              {phase === "feedback" && answerFeedback ? (
-                <FeedbackResult
-                  feedback={answerFeedback}
-                  correctAnswer={currentCharacter.romaji}
-                />
-              ) : preferences.quizMode === "text" ? (
+              {preferences.quizMode === "text" ? (
                 <AnswerInput
                   onSubmit={handleAnswerSelect}
-                  answerFeedback={null}
+                  answerFeedback={answerFeedback}
                   correctAnswer={currentCharacter.romaji}
-                  disabled={false}
+                  disabled={phase === "feedback"}
                 />
               ) : (
                 <AnswerGrid
                   answers={answers}
                   onAnswerSelect={handleAnswerSelect}
-                  disabled={false}
+                  answerFeedback={answerFeedback}
+                  disabled={phase === "feedback"}
                   questionId={questionId}
                 />
               )}

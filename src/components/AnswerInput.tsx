@@ -54,11 +54,6 @@ export default function AnswerInput({
         spellCheck={false}
         aria-label="Réponse en romaji"
       />
-      {answerFeedback?.status === "wrong" && (
-        <p className="text-sm text-center text-rose-300">
-          Réponse attendue : <strong>{correctAnswer}</strong>
-        </p>
-      )}
       <button
         type="submit"
         disabled={!value.trim() || disabled || answerFeedback !== null}

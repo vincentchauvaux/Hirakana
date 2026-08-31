@@ -31,8 +31,8 @@ import {
 const STORAGE_KEY = "hirakana-progress";
 type QuizPhase = "loading" | "asking" | "feedback";
 
-const CORRECT_DELAY_MS = 500;
-const WRONG_DELAY_MS = 900;
+const CORRECT_DELAY_MS = 250;
+const WRONG_DELAY_MS = 450;
 
 function loadProgress(): GameProgress {
   try {
