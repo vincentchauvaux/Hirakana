@@ -29,6 +29,10 @@ import {
 } from "../utils/quiz";
 
 const STORAGE_KEY = "hirakana-progress";
+type QuizPhase = "loading" | "asking" | "feedback";
+
+const CORRECT_DELAY_MS = 500;
+const WRONG_DELAY_MS = 900;
 
 function loadProgress(): GameProgress {
   try {
@@ -57,14 +61,15 @@ export function useQuizGame(
   const [progress, setProgress] = useState<GameProgress>(loadProgress);
   const [mistakes, setMistakes] = useState<MistakeStats>(loadMistakes);
   const [currentScript, setCurrentScript] = useState<ScriptId>("hiragana");
+  const [phase, setPhase] = useState<QuizPhase>("loading");
   const [currentCharacter, setCurrentCharacter] = useState<KanaCharacter | null>(
     null
   );
   const [answers, setAnswers] = useState<string[]>([]);
   const [answerFeedback, setAnswerFeedback] = useState<AnswerFeedback>(null);
-  const [isLocked, setIsLocked] = useState(false);
   const [questionId, setQuestionId] = useState(0);
   const pendingExcludeRomaji = useRef<string | undefined>(undefined);
+  const feedbackTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const scriptData = SCRIPTS[currentScript];
   const scriptProgress = progress[currentScript];
@@ -88,29 +93,49 @@ export function useQuizGame(
     [mistakes, currentScript]
   );
 
-  const clearFeedback = useCallback(() => {
-    setAnswerFeedback(null);
-    blurActiveElement();
+  const clearFeedbackTimer = useCallback(() => {
+    if (feedbackTimer.current) {
+      clearTimeout(feedbackTimer.current);
+      feedbackTimer.current = undefined;
+    }
   }, []);
 
-  const showCharacter = useCallback(
-    (character: KanaCharacter) => {
-      setCurrentCharacter(character);
-      setQuestionId((id) => id + 1);
-      clearFeedback();
-      setIsLocked(false);
-    },
-    [clearFeedback]
-  );
+  const startLoading = useCallback(() => {
+    clearFeedbackTimer();
+    setPhase("loading");
+    setCurrentCharacter(null);
+    setAnswers([]);
+    setAnswerFeedback(null);
+    blurActiveElement();
+  }, [clearFeedbackTimer]);
 
-  const pickNextCharacter = useCallback(
-    (excludeRomaji?: string) =>
-      pickWeightedCharacter(unlockedCharacters, scriptMistakes, excludeRomaji),
-    [scriptMistakes, unlockedCharacters]
-  );
+  const loadNextQuestion = useCallback(() => {
+    const next = pickWeightedCharacter(
+      unlockedCharacters,
+      scriptMistakes,
+      pendingExcludeRomaji.current
+    );
+    pendingExcludeRomaji.current = undefined;
+
+    if (!next) return;
+
+    if (quizMode === "choice") {
+      const allRomaji = getAllRomaji(scriptData);
+      setAnswers(generateAnswers(next.romaji, allRomaji, answerCount));
+    } else {
+      setAnswers([]);
+    }
+
+    setCurrentCharacter(next);
+    setQuestionId((id) => id + 1);
+    setAnswerFeedback(null);
+    setPhase("asking");
+    blurActiveElement();
+  }, [answerCount, quizMode, scriptData, scriptMistakes, unlockedCharacters]);
 
   const resetScriptProgress = useCallback(
     (script: ScriptId) => {
+      clearFeedbackTimer();
       setProgress((prev) => {
         const next = {
           ...prev,
@@ -121,89 +146,82 @@ export function useQuizGame(
       });
       setMistakes((prev) => clearMistakesForScript(prev, script));
       if (script === currentScript) {
-        setCurrentCharacter(null);
         pendingExcludeRomaji.current = undefined;
-        clearFeedback();
-        setIsLocked(false);
+        startLoading();
       }
     },
-    [clearFeedback, currentScript]
+    [clearFeedbackTimer, currentScript, startLoading]
   );
 
   const resetAllProgress = useCallback(() => {
+    clearFeedbackTimer();
     setProgress(DEFAULT_PROGRESS);
     saveProgress(DEFAULT_PROGRESS);
     setMistakes(clearAllMistakes());
-    setCurrentCharacter(null);
     pendingExcludeRomaji.current = undefined;
-    clearFeedback();
-    setIsLocked(false);
-  }, [clearFeedback]);
+    startLoading();
+  }, [clearFeedbackTimer, startLoading]);
 
   const handleScriptChange = useCallback(
     (script: ScriptId) => {
+      clearFeedbackTimer();
       setCurrentScript(script);
-      setCurrentCharacter(null);
       pendingExcludeRomaji.current = undefined;
-      clearFeedback();
-      setIsLocked(false);
+      startLoading();
     },
-    [clearFeedback]
+    [clearFeedbackTimer, startLoading]
   );
 
   useEffect(() => {
     if (isComplete) {
+      clearFeedbackTimer();
       setCurrentCharacter(null);
       setAnswers([]);
       return;
     }
 
-    if (!currentCharacter && unlockedCharacters.length > 0) {
-      const next = pickNextCharacter(pendingExcludeRomaji.current);
-      pendingExcludeRomaji.current = undefined;
-      if (next) showCharacter(next);
+    if (phase === "loading" && unlockedCharacters.length > 0) {
+      loadNextQuestion();
     }
   }, [
-    currentCharacter,
+    clearFeedbackTimer,
     isComplete,
-    pickNextCharacter,
-    showCharacter,
+    loadNextQuestion,
+    phase,
     unlockedCharacters.length,
   ]);
 
-  useEffect(() => {
-    if (!currentCharacter || quizMode !== "choice") {
-      setAnswers([]);
-      return;
-    }
+  useEffect(() => () => clearFeedbackTimer(), [clearFeedbackTimer]);
 
-    clearFeedback();
-    const allRomaji = getAllRomaji(scriptData);
-    setAnswers(generateAnswers(currentCharacter.romaji, allRomaji, answerCount));
-  }, [answerCount, clearFeedback, currentCharacter, quizMode, scriptData]);
+  useEffect(() => {
+    if (questionId > 0) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [questionId]);
 
   const handleAnswerSelect = useCallback(
     (answer: string) => {
-      if (isLocked || !currentCharacter || isComplete) return;
+      if (phase !== "asking" || !currentCharacter || isComplete) return;
 
       const isCorrect = isRomajiMatch(answer, currentCharacter.romaji);
       setAnswerFeedback({
         answer,
         status: isCorrect ? "correct" : "wrong",
       });
-      setIsLocked(true);
+      setPhase("feedback");
 
-      if (isCorrect) {
-        const alreadyMastered = masteredRomaji.includes(currentCharacter.romaji);
-        const nextMastered = alreadyMastered
-          ? masteredRomaji
-          : [...masteredRomaji, currentCharacter.romaji];
+      clearFeedbackTimer();
+      feedbackTimer.current = setTimeout(() => {
+        if (isCorrect) {
+          const alreadyMastered = masteredRomaji.includes(
+            currentCharacter.romaji
+          );
+          const nextMastered = alreadyMastered
+            ? masteredRomaji
+            : [...masteredRomaji, currentCharacter.romaji];
 
-        const levelComplete =
-          nextMastered.length === unlockedCharacters.length;
-
-        setTimeout(() => {
-          clearFeedback();
+          const levelComplete =
+            nextMastered.length === unlockedCharacters.length;
 
           if (levelComplete) {
             const nextLevel = currentLevel + 1;
@@ -218,8 +236,6 @@ export function useQuizGame(
               saveProgress(next);
               return next;
             });
-            setCurrentCharacter(null);
-            setIsLocked(false);
           } else {
             setProgress((prev) => {
               const next = {
@@ -233,43 +249,37 @@ export function useQuizGame(
               return next;
             });
             pendingExcludeRomaji.current = currentCharacter.romaji;
-            setCurrentCharacter(null);
-            setIsLocked(false);
           }
-        }, 400);
-      } else {
-        setMistakes((prev) =>
-          recordMistake(prev, currentScript, currentCharacter.romaji)
-        );
 
-        setTimeout(() => {
-          clearFeedback();
-          setIsLocked(false);
-        }, 800);
-      }
+          startLoading();
+        } else {
+          setMistakes((prev) =>
+            recordMistake(prev, currentScript, currentCharacter.romaji)
+          );
+          setPhase("asking");
+          setAnswerFeedback(null);
+          blurActiveElement();
+        }
+      }, isCorrect ? CORRECT_DELAY_MS : WRONG_DELAY_MS);
     },
     [
-      clearFeedback,
+      clearFeedbackTimer,
       currentCharacter,
       currentLevel,
       currentScript,
       isComplete,
-      isLocked,
       masteredRomaji,
+      phase,
+      startLoading,
       unlockedCharacters.length,
     ]
   );
-
-  useEffect(() => {
-    if (questionId > 0) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, [questionId]);
 
   return {
     currentScript,
     currentCharacter,
     questionId,
+    phase,
     answers,
     answerFeedback,
     currentLevel,

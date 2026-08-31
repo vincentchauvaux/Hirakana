@@ -52,7 +52,7 @@ hirakana/
 - **Préférences** : mode quiz (choix / saisie), nombre de propositions (4, 6, 8 ou 10 en mode choix), persistées dans `localStorage`
 - **Erreurs pondérées** : chaque erreur incrémente un compteur par romaji/script ; sélection du prochain caractère via `pickWeightedCharacter` (poids = `1 + erreurs × 2`)
 - **Points difficiles** : top 5 visible dans Préférences (⚙) ; les caractères ratés reviennent plus souvent
-- **Feedback visuel** : état `answerFeedback` (correct/wrong) effacé avant changement de question + `blur()` pour éviter focus/hover collant sur mobile
+- **Feedback visuel** : phase `asking` → `feedback` → `loading` ; la grille est démontée pendant le feedback (bannière `FeedbackResult`) puis entre chaque question
 
 ## Bugs corrigés (v1)
 
@@ -62,7 +62,7 @@ hirakana/
 4. **Dépendances inutilisées** : firebase, git, react-scripts retirés
 5. **CRA** : migré vers Vite + TypeScript
 6. **Feedback boutons** : couleur qui restait sur le dernier choix (réutilisation de romaji + focus mobile)
-7. **Questions empilées** : remontage forcé via `questionId` + passage par `null` entre chaque caractère
+7. **Questions empilées** : cycle de phases + démontage complet de la grille entre les questions
 
 ## Commandes
 

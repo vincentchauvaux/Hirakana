@@ -4,6 +4,7 @@ import ScriptSelector from "./components/ScriptSelector";
 import CharacterDisplay from "./components/CharacterDisplay";
 import AnswerGrid from "./components/AnswerGrid";
 import AnswerInput from "./components/AnswerInput";
+import FeedbackResult from "./components/FeedbackResult";
 import ProgressBar from "./components/ProgressBar";
 import CompletionScreen from "./components/CompletionScreen";
 import SettingsPanel from "./components/SettingsPanel";
@@ -18,6 +19,7 @@ export default function App() {
     currentScript,
     currentCharacter,
     questionId,
+    phase,
     answers,
     answerFeedback,
     currentLevel,
@@ -46,6 +48,9 @@ export default function App() {
     resetAllProgress();
     setSettingsOpen(false);
   };
+
+  const showQuestion =
+    currentCharacter && (phase === "asking" || phase === "feedback");
 
   return (
     <div className="min-h-screen bg-slate-900 text-white px-4 py-6 sm:py-10 flex flex-col items-center overflow-x-hidden">
@@ -79,25 +84,30 @@ export default function App() {
             detail={`${masteredCount} / ${unlockedCount}`}
           />
 
-          {currentCharacter ? (
+          {showQuestion ? (
             <div
               key={questionId}
               className="w-full max-w-md flex flex-col items-center"
             >
               <CharacterDisplay character={currentCharacter} />
-              {preferences.quizMode === "text" ? (
+              {phase === "feedback" && answerFeedback ? (
+                <FeedbackResult
+                  feedback={answerFeedback}
+                  correctAnswer={currentCharacter.romaji}
+                />
+              ) : preferences.quizMode === "text" ? (
                 <AnswerInput
                   onSubmit={handleAnswerSelect}
-                  answerFeedback={answerFeedback}
+                  answerFeedback={null}
                   correctAnswer={currentCharacter.romaji}
-                  disabled={answerFeedback !== null}
+                  disabled={false}
                 />
               ) : (
                 <AnswerGrid
                   answers={answers}
                   onAnswerSelect={handleAnswerSelect}
-                  answerFeedback={answerFeedback}
-                  disabled={answerFeedback !== null}
+                  disabled={false}
+                  questionId={questionId}
                 />
               )}
             </div>
