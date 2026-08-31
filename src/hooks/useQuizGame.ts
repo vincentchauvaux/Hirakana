@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SCRIPTS, getAllRomaji } from "../data/characters";
 import {
   DEFAULT_PROGRESS,
@@ -63,6 +63,8 @@ export function useQuizGame(
   const [answers, setAnswers] = useState<string[]>([]);
   const [answerFeedback, setAnswerFeedback] = useState<AnswerFeedback>(null);
   const [isLocked, setIsLocked] = useState(false);
+  const [questionId, setQuestionId] = useState(0);
+  const pendingExcludeRomaji = useRef<string | undefined>(undefined);
 
   const scriptData = SCRIPTS[currentScript];
   const scriptProgress = progress[currentScript];
@@ -91,6 +93,22 @@ export function useQuizGame(
     blurActiveElement();
   }, []);
 
+  const showCharacter = useCallback(
+    (character: KanaCharacter) => {
+      setCurrentCharacter(character);
+      setQuestionId((id) => id + 1);
+      clearFeedback();
+      setIsLocked(false);
+    },
+    [clearFeedback]
+  );
+
+  const pickNextCharacter = useCallback(
+    (excludeRomaji?: string) =>
+      pickWeightedCharacter(unlockedCharacters, scriptMistakes, excludeRomaji),
+    [scriptMistakes, unlockedCharacters]
+  );
+
   const resetScriptProgress = useCallback(
     (script: ScriptId) => {
       setProgress((prev) => {
@@ -104,6 +122,7 @@ export function useQuizGame(
       setMistakes((prev) => clearMistakesForScript(prev, script));
       if (script === currentScript) {
         setCurrentCharacter(null);
+        pendingExcludeRomaji.current = undefined;
         clearFeedback();
         setIsLocked(false);
       }
@@ -116,6 +135,7 @@ export function useQuizGame(
     saveProgress(DEFAULT_PROGRESS);
     setMistakes(clearAllMistakes());
     setCurrentCharacter(null);
+    pendingExcludeRomaji.current = undefined;
     clearFeedback();
     setIsLocked(false);
   }, [clearFeedback]);
@@ -124,24 +144,11 @@ export function useQuizGame(
     (script: ScriptId) => {
       setCurrentScript(script);
       setCurrentCharacter(null);
+      pendingExcludeRomaji.current = undefined;
       clearFeedback();
       setIsLocked(false);
     },
     [clearFeedback]
-  );
-
-  const advanceCharacter = useCallback(
-    (excludeRomaji?: string) => {
-      const next = pickWeightedCharacter(
-        unlockedCharacters,
-        scriptMistakes,
-        excludeRomaji
-      );
-      setCurrentCharacter(next);
-      clearFeedback();
-      setIsLocked(false);
-    },
-    [clearFeedback, scriptMistakes, unlockedCharacters]
   );
 
   useEffect(() => {
@@ -152,9 +159,17 @@ export function useQuizGame(
     }
 
     if (!currentCharacter && unlockedCharacters.length > 0) {
-      advanceCharacter();
+      const next = pickNextCharacter(pendingExcludeRomaji.current);
+      pendingExcludeRomaji.current = undefined;
+      if (next) showCharacter(next);
     }
-  }, [advanceCharacter, currentCharacter, isComplete, unlockedCharacters]);
+  }, [
+    currentCharacter,
+    isComplete,
+    pickNextCharacter,
+    showCharacter,
+    unlockedCharacters.length,
+  ]);
 
   useEffect(() => {
     if (!currentCharacter || quizMode !== "choice") {
@@ -217,7 +232,9 @@ export function useQuizGame(
               saveProgress(next);
               return next;
             });
-            advanceCharacter(currentCharacter.romaji);
+            pendingExcludeRomaji.current = currentCharacter.romaji;
+            setCurrentCharacter(null);
+            setIsLocked(false);
           }
         }, 400);
       } else {
@@ -232,7 +249,6 @@ export function useQuizGame(
       }
     },
     [
-      advanceCharacter,
       clearFeedback,
       currentCharacter,
       currentLevel,
@@ -244,9 +260,16 @@ export function useQuizGame(
     ]
   );
 
+  useEffect(() => {
+    if (questionId > 0) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [questionId]);
+
   return {
     currentScript,
     currentCharacter,
+    questionId,
     answers,
     answerFeedback,
     currentLevel,

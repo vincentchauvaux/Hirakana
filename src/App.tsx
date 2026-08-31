@@ -17,6 +17,7 @@ export default function App() {
   const {
     currentScript,
     currentCharacter,
+    questionId,
     answers,
     answerFeedback,
     currentLevel,
@@ -47,7 +48,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white px-4 py-6 sm:py-10 flex flex-col items-center">
+    <div className="min-h-screen bg-slate-900 text-white px-4 py-6 sm:py-10 flex flex-col items-center overflow-x-hidden">
       <Header
         showReset={hasProgress}
         onReset={() => resetScriptProgress(currentScript)}
@@ -79,14 +80,13 @@ export default function App() {
           />
 
           {currentCharacter ? (
-            <>
-              <CharacterDisplay
-                key={`${currentScript}-${currentCharacter.char}`}
-                character={currentCharacter}
-              />
+            <div
+              key={questionId}
+              className="w-full max-w-md flex flex-col items-center"
+            >
+              <CharacterDisplay character={currentCharacter} />
               {preferences.quizMode === "text" ? (
                 <AnswerInput
-                  key={`${currentScript}-${currentCharacter.char}`}
                   onSubmit={handleAnswerSelect}
                   answerFeedback={answerFeedback}
                   correctAnswer={currentCharacter.romaji}
@@ -94,14 +94,13 @@ export default function App() {
                 />
               ) : (
                 <AnswerGrid
-                  key={`${currentScript}-${currentCharacter.char}`}
                   answers={answers}
                   onAnswerSelect={handleAnswerSelect}
                   answerFeedback={answerFeedback}
                   disabled={answerFeedback !== null}
                 />
               )}
-            </>
+            </div>
           ) : (
             <p className="text-slate-400">Chargement…</p>
           )}

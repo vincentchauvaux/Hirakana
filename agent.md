@@ -62,6 +62,7 @@ hirakana/
 4. **Dépendances inutilisées** : firebase, git, react-scripts retirés
 5. **CRA** : migré vers Vite + TypeScript
 6. **Feedback boutons** : couleur qui restait sur le dernier choix (réutilisation de romaji + focus mobile)
+7. **Questions empilées** : remontage forcé via `questionId` + passage par `null` entre chaque caractère
 
 ## Commandes
 
