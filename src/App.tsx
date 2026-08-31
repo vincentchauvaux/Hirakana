@@ -33,7 +33,11 @@ export default function App() {
     handleAnswerSelect,
     resetScriptProgress,
     resetAllProgress,
-  } = useQuizGame(preferences.answerCount, preferences.quizMode);
+  } = useQuizGame(
+    preferences.answerCount,
+    preferences.quizMode,
+    preferences.maxAppearances
+  );
 
   const hasProgress =
     currentLevel > 0 || masteredCount > 0 || isComplete;
@@ -50,9 +54,14 @@ export default function App() {
 
   const showQuestion =
     currentCharacter && (phase === "asking" || phase === "feedback");
+  const compactQuiz = preferences.answerCount >= 8;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white px-4 py-6 sm:py-10 flex flex-col items-center overflow-x-hidden">
+    <div
+      className={`min-h-screen bg-slate-900 text-white flex flex-col items-center overflow-x-hidden ${
+        compactQuiz ? "px-3 py-3 sm:py-6" : "px-4 py-6 sm:py-10"
+      }`}
+    >
       <Header
         showReset={hasProgress}
         onReset={() => resetScriptProgress(currentScript)}
@@ -77,18 +86,20 @@ export default function App() {
         />
       ) : (
         <>
-          <ProgressBar
-            progress={levelProgress}
-            label={rowLabel ?? "Niveau"}
-            detail={`${masteredCount} / ${unlockedCount}`}
-          />
+          <div className={compactQuiz ? "mb-3 w-full max-w-md" : "mb-6 w-full max-w-md"}>
+            <ProgressBar
+              progress={levelProgress}
+              label={rowLabel ?? "Niveau"}
+              detail={`${masteredCount} / ${unlockedCount}`}
+            />
+          </div>
 
           {showQuestion ? (
-            <div
-              key={questionId}
-              className="w-full max-w-md flex flex-col items-center"
-            >
-              <CharacterDisplay character={currentCharacter} />
+            <div className="w-full max-w-md flex flex-col items-center">
+              <CharacterDisplay
+                character={currentCharacter}
+                compact={compactQuiz}
+              />
               {preferences.quizMode === "text" ? (
                 <AnswerInput
                   onSubmit={handleAnswerSelect}
@@ -103,6 +114,7 @@ export default function App() {
                   answerFeedback={answerFeedback}
                   disabled={phase === "feedback"}
                   questionId={questionId}
+                  compact={compactQuiz}
                 />
               )}
             </div>

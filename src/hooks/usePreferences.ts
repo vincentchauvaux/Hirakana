@@ -1,10 +1,17 @@
 import { useCallback, useState } from "react";
 
-import { ANSWER_COUNT_OPTIONS, type AnswerCount, type QuizMode } from "../types";
+import {
+  ANSWER_COUNT_OPTIONS,
+  MAX_APPEARANCE_OPTIONS,
+  type AnswerCount,
+  type MaxAppearances,
+  type QuizMode,
+} from "../types";
 
 export interface Preferences {
   answerCount: AnswerCount;
   quizMode: QuizMode;
+  maxAppearances: MaxAppearances;
 }
 
 const STORAGE_KEY = "hirakana-preferences";
@@ -12,10 +19,15 @@ const STORAGE_KEY = "hirakana-preferences";
 export const DEFAULT_PREFERENCES: Preferences = {
   answerCount: 6,
   quizMode: "choice",
+  maxAppearances: 2,
 };
 
 function isAnswerCount(value: unknown): value is AnswerCount {
   return ANSWER_COUNT_OPTIONS.includes(value as AnswerCount);
+}
+
+function isMaxAppearances(value: unknown): value is MaxAppearances {
+  return MAX_APPEARANCE_OPTIONS.includes(value as MaxAppearances);
 }
 
 function loadPreferences(): Preferences {
@@ -28,6 +40,9 @@ function loadPreferences(): Preferences {
         ? parsed.answerCount
         : DEFAULT_PREFERENCES.answerCount,
       quizMode: parsed.quizMode === "text" ? "text" : "choice",
+      maxAppearances: isMaxAppearances(parsed.maxAppearances)
+        ? parsed.maxAppearances
+        : DEFAULT_PREFERENCES.maxAppearances,
     };
   } catch {
     return DEFAULT_PREFERENCES;

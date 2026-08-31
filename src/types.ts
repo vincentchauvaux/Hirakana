@@ -6,6 +6,11 @@ export type AnswerCount = 4 | 6 | 8 | 10;
 
 export const ANSWER_COUNT_OPTIONS: AnswerCount[] = [4, 6, 8, 10];
 
+/** 0 = pas de limite de répétition par niveau */
+export type MaxAppearances = 0 | 1 | 2 | 3 | 5;
+
+export const MAX_APPEARANCE_OPTIONS: MaxAppearances[] = [1, 2, 3, 5, 0];
+
 export type RowId = "a" | "k" | "sh" | "ts" | "n";
 
 export interface KanaCharacter {

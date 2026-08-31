@@ -1,6 +1,6 @@
 # Agent — HiraKata
 
-> Dernière mise à jour : 2026-08-31 (erreurs pondérées + feedback visuel)
+> Dernière mise à jour : 2026-08-31 (option répétitions par niveau)
 
 ## Vision
 
@@ -46,13 +46,14 @@ hirakana/
 - **Scripts** : hiragana (25 car.) / katakana (25 car.)
 - **Niveaux** : 5 rangées débloquées progressivement (`ROW_ORDER`)
 - **Quiz** : choix multiples (4 ou 6 propositions) ou **saisie libre** (romaji tapé + Valider / Entrée)
-- **Progression** : chaque caractère du niveau doit être trouvé une fois ; passage au niveau suivant automatique
+- **Progression** : chaque caractère du niveau doit être trouvé une fois ; passage au niveau suivant automatique ; seuls les caractères **pas encore maîtrisés** sont proposés ; limite de répétitions par caractère et par niveau (réglable, défaut 2)
 - **Fin** : écran de félicitations + bascule vers l'autre script
 - **Reset** : bouton ↺ dans l'en-tête (script courant) ; panneau **Préférences** (⚙) pour reset par script ou global
-- **Préférences** : mode quiz (choix / saisie), nombre de propositions (4, 6, 8 ou 10 en mode choix), persistées dans `localStorage`
+- **Préférences** : mode quiz (choix / saisie), nombre de propositions (4, 6, 8 ou 10 en mode choix), **répétitions max par niveau** (1, 2, 3, 5 ou illimité), persistées dans `localStorage` ; panneau plein écran mobile avec bouton **Retour au quiz** (en-tête + pied de page)
 - **Erreurs pondérées** : chaque erreur incrémente un compteur par romaji/script ; sélection du prochain caractère via `pickWeightedCharacter` (poids = `1 + erreurs × 2`)
 - **Points difficiles** : top 5 visible dans Préférences (⚙) ; les caractères ratés reviennent plus souvent
-- **Feedback visuel** : contour vert/rouge sur la réponse sélectionnée (rapide), puis passage à la question suivante
+- **Feedback visuel** : contour vert/rouge sur la réponse sélectionnée (rapide), puis passage à la question suivante sans scroll automatique ni flash « Chargement… »
+- **Layout compact** : avec 8 ou 10 propositions, caractère et boutons réduits pour tout afficher à l'écran mobile
 
 ## Bugs corrigés (v1)
 

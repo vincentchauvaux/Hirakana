@@ -2,6 +2,29 @@ import type { KanaCharacter, RowId } from "../types";
 import { ROW_ORDER } from "../types";
 import { getMistakeWeight } from "./mistakes";
 
+/** Max fois qu'un même caractère peut être proposé par niveau (hors répétition après erreur). */
+export const MAX_APPEARANCES_PER_LEVEL = 2;
+
+export function filterByAppearanceLimit(
+  characters: KanaCharacter[],
+  appearanceCounts: Record<string, number>,
+  max = MAX_APPEARANCES_PER_LEVEL
+): KanaCharacter[] {
+  if (characters.length === 0) return characters;
+
+  const withinLimit = characters.filter(
+    (c) => (appearanceCounts[c.romaji] ?? 0) < max
+  );
+  if (withinLimit.length > 0) return withinLimit;
+
+  const minCount = Math.min(
+    ...characters.map((c) => appearanceCounts[c.romaji] ?? 0)
+  );
+  return characters.filter(
+    (c) => (appearanceCounts[c.romaji] ?? 0) === minCount
+  );
+}
+
 export function shuffleArray<T>(array: T[]): T[] {
   const copy = [...array];
   for (let i = copy.length - 1; i > 0; i -= 1) {
