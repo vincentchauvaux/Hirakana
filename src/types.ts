@@ -1,5 +1,7 @@
 export type ScriptId = "hiragana" | "katakana";
 
+export type QuizMode = "choice" | "text";
+
 export type RowId = "a" | "k" | "sh" | "ts" | "n";
 
 export interface KanaCharacter {

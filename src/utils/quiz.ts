@@ -84,3 +84,11 @@ export function calcLevelProgress(
   if (totalInLevel === 0) return 0;
   return Math.round((masteredCount / totalInLevel) * 100);
 }
+
+export function normalizeRomaji(input: string): string {
+  return input.trim().toLowerCase();
+}
+
+export function isRomajiMatch(input: string, expected: string): boolean {
+  return normalizeRomaji(input) === normalizeRomaji(expected);
+}

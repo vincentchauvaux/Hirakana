@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import ScriptSelector from "./components/ScriptSelector";
 import CharacterDisplay from "./components/CharacterDisplay";
 import AnswerGrid from "./components/AnswerGrid";
+import AnswerInput from "./components/AnswerInput";
 import ProgressBar from "./components/ProgressBar";
 import CompletionScreen from "./components/CompletionScreen";
 import SettingsPanel from "./components/SettingsPanel";
@@ -30,7 +31,7 @@ export default function App() {
     handleAnswerSelect,
     resetScriptProgress,
     resetAllProgress,
-  } = useQuizGame(preferences.answerCount);
+  } = useQuizGame(preferences.answerCount, preferences.quizMode);
 
   const hasProgress =
     currentLevel > 0 || masteredCount > 0 || isComplete;
@@ -83,13 +84,23 @@ export default function App() {
                 key={`${currentScript}-${currentCharacter.char}`}
                 character={currentCharacter}
               />
-              <AnswerGrid
-                key={`${currentScript}-${currentCharacter.char}`}
-                answers={answers}
-                onAnswerSelect={handleAnswerSelect}
-                answerFeedback={answerFeedback}
-                disabled={answerFeedback !== null}
-              />
+              {preferences.quizMode === "text" ? (
+                <AnswerInput
+                  key={`${currentScript}-${currentCharacter.char}`}
+                  onSubmit={handleAnswerSelect}
+                  answerFeedback={answerFeedback}
+                  correctAnswer={currentCharacter.romaji}
+                  disabled={answerFeedback !== null}
+                />
+              ) : (
+                <AnswerGrid
+                  key={`${currentScript}-${currentCharacter.char}`}
+                  answers={answers}
+                  onAnswerSelect={handleAnswerSelect}
+                  answerFeedback={answerFeedback}
+                  disabled={answerFeedback !== null}
+                />
+              )}
             </>
           ) : (
             <p className="text-slate-400">Chargement…</p>

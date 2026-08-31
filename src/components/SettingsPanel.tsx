@@ -55,25 +55,51 @@ export default function SettingsPanel({
         <div className="px-5 py-4 space-y-6">
           <section>
             <h3 className="text-sm font-medium text-slate-300 mb-3">Quiz</h3>
-            <label className="block text-xs text-slate-400 mb-2">
-              Nombre de propositions
-            </label>
-            <div className="flex gap-2">
-              {([4, 6] as const).map((count) => (
+            <label className="block text-xs text-slate-400 mb-2">Mode</label>
+            <div className="flex gap-2 mb-4">
+              {(
+                [
+                  { id: "choice", label: "Choix multiples" },
+                  { id: "text", label: "Saisie libre" },
+                ] as const
+              ).map(({ id, label }) => (
                 <button
-                  key={count}
+                  key={id}
                   type="button"
-                  onClick={() => onUpdatePreferences({ answerCount: count })}
-                  className={`flex-1 py-2.5 rounded-lg transition-colors ${
-                    preferences.answerCount === count
+                  onClick={() => onUpdatePreferences({ quizMode: id })}
+                  className={`flex-1 py-2.5 rounded-lg transition-colors text-sm ${
+                    preferences.quizMode === id
                       ? "bg-sky-500 text-white font-medium"
                       : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                   }`}
                 >
-                  {count} choix
+                  {label}
                 </button>
               ))}
             </div>
+            {preferences.quizMode === "choice" && (
+              <>
+                <label className="block text-xs text-slate-400 mb-2">
+                  Nombre de propositions
+                </label>
+                <div className="flex gap-2">
+                  {([4, 6] as const).map((count) => (
+                    <button
+                      key={count}
+                      type="button"
+                      onClick={() => onUpdatePreferences({ answerCount: count })}
+                      className={`flex-1 py-2.5 rounded-lg transition-colors ${
+                        preferences.answerCount === count
+                          ? "bg-sky-500 text-white font-medium"
+                          : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      }`}
+                    >
+                      {count} choix
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
 
           <section>

@@ -1,13 +1,17 @@
 import { useCallback, useState } from "react";
 
+import type { QuizMode } from "../types";
+
 export interface Preferences {
   answerCount: 4 | 6;
+  quizMode: QuizMode;
 }
 
 const STORAGE_KEY = "hirakana-preferences";
 
 export const DEFAULT_PREFERENCES: Preferences = {
   answerCount: 6,
+  quizMode: "choice",
 };
 
 function loadPreferences(): Preferences {
@@ -17,6 +21,7 @@ function loadPreferences(): Preferences {
     const parsed = JSON.parse(raw) as Partial<Preferences>;
     return {
       answerCount: parsed.answerCount === 4 ? 4 : 6,
+      quizMode: parsed.quizMode === "text" ? "text" : "choice",
     };
   } catch {
     return DEFAULT_PREFERENCES;

@@ -8,6 +8,7 @@ import {
   type GameProgress,
   type KanaCharacter,
   type MistakeStats,
+  type QuizMode,
   type ScriptId,
 } from "../types";
 import {
@@ -22,6 +23,7 @@ import {
   generateAnswers,
   getCurrentRow,
   getUnlockedCharacters,
+  isRomajiMatch,
   pickWeightedCharacter,
 } from "../utils/quiz";
 
@@ -47,7 +49,10 @@ function blurActiveElement() {
   }
 }
 
-export function useQuizGame(answerCount: 4 | 6 = 6) {
+export function useQuizGame(
+  answerCount: 4 | 6 = 6,
+  quizMode: QuizMode = "choice"
+) {
   const [progress, setProgress] = useState<GameProgress>(loadProgress);
   const [mistakes, setMistakes] = useState<MistakeStats>(loadMistakes);
   const [currentScript, setCurrentScript] = useState<ScriptId>("hiragana");
@@ -151,7 +156,7 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
   }, [advanceCharacter, currentCharacter, isComplete, unlockedCharacters]);
 
   useEffect(() => {
-    if (!currentCharacter) {
+    if (!currentCharacter || quizMode !== "choice") {
       setAnswers([]);
       return;
     }
@@ -159,13 +164,13 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
     clearFeedback();
     const allRomaji = getAllRomaji(scriptData);
     setAnswers(generateAnswers(currentCharacter.romaji, allRomaji, answerCount));
-  }, [answerCount, clearFeedback, currentCharacter, scriptData]);
+  }, [answerCount, clearFeedback, currentCharacter, quizMode, scriptData]);
 
   const handleAnswerSelect = useCallback(
     (answer: string) => {
       if (isLocked || !currentCharacter || isComplete) return;
 
-      const isCorrect = answer === currentCharacter.romaji;
+      const isCorrect = isRomajiMatch(answer, currentCharacter.romaji);
       setAnswerFeedback({
         answer,
         status: isCorrect ? "correct" : "wrong",
