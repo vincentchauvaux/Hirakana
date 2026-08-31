@@ -17,7 +17,7 @@ export default function App() {
     currentScript,
     currentCharacter,
     answers,
-    selectedAnswer,
+    answerFeedback,
     currentLevel,
     rowLabel,
     levelProgress,
@@ -25,6 +25,7 @@ export default function App() {
     masteredCount,
     unlockedCount,
     totalCharacters,
+    topMistakes,
     handleScriptChange,
     handleAnswerSelect,
     resetScriptProgress,
@@ -83,11 +84,11 @@ export default function App() {
                 character={currentCharacter}
               />
               <AnswerGrid
+                key={`${currentScript}-${currentCharacter.char}`}
                 answers={answers}
                 onAnswerSelect={handleAnswerSelect}
-                selectedAnswer={selectedAnswer}
-                correctAnswer={currentCharacter.romaji}
-                disabled={selectedAnswer !== null}
+                answerFeedback={answerFeedback}
+                disabled={answerFeedback !== null}
               />
             </>
           ) : (
@@ -100,6 +101,7 @@ export default function App() {
         open={settingsOpen}
         preferences={preferences}
         currentScript={currentScript}
+        topMistakes={topMistakes}
         onClose={() => setSettingsOpen(false)}
         onUpdatePreferences={updatePreferences}
         onResetScript={handleResetScript}

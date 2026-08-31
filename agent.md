@@ -1,6 +1,6 @@
 # Agent — HiraKata
 
-> Dernière mise à jour : 2026-07-14
+> Dernière mise à jour : 2026-08-31 (erreurs pondérées + feedback visuel)
 
 ## Vision
 
@@ -12,9 +12,10 @@ Application web d'apprentissage des **hiragana** et **katakana** japonais, par q
 |--------|--------|
 | Front | React 18, TypeScript, Vite 5 |
 | Styles | Tailwind CSS 3 |
-| Icônes | lucide-react |
+| Icônes UI | lucide-react |
 | Données | Statiques (`src/data/characters.ts`) |
-| Persistance | `localStorage` (progression par script) |
+| Persistance | `localStorage` — progression (`hirakana-progress`), préférences (`hirakana-preferences`), erreurs (`hirakana-mistakes`) |
+| Logo / favicon | SVG `public/icon.svg` (いカ) + PNG (`npm run icons:generate`) |
 | Déploiement | Docker (nginx:alpine) + Nginx hôte `/hirakana` |
 
 ## Structure
@@ -35,6 +36,7 @@ hirakana/
     ├── types.ts
     ├── data/characters.ts
     ├── utils/quiz.ts
+    ├── utils/mistakes.ts
     ├── hooks/useQuizGame.ts
     └── components/
 ```
@@ -48,6 +50,9 @@ hirakana/
 - **Fin** : écran de félicitations + bascule vers l'autre script
 - **Reset** : bouton ↺ dans l'en-tête (script courant) ; panneau **Préférences** (⚙) pour reset par script ou global
 - **Préférences** : nombre de propositions (4 ou 6), persistées dans `localStorage`
+- **Erreurs pondérées** : chaque erreur incrémente un compteur par romaji/script ; sélection du prochain caractère via `pickWeightedCharacter` (poids = `1 + erreurs × 2`)
+- **Points difficiles** : top 5 visible dans Préférences (⚙) ; les caractères ratés reviennent plus souvent
+- **Feedback visuel** : état `answerFeedback` (correct/wrong) effacé avant changement de question + `blur()` pour éviter focus/hover collant sur mobile
 
 ## Bugs corrigés (v1)
 
@@ -56,6 +61,7 @@ hirakana/
 3. **Tailwind CDN** : supprimé (doublon avec PostCSS)
 4. **Dépendances inutilisées** : firebase, git, react-scripts retirés
 5. **CRA** : migré vers Vite + TypeScript
+6. **Feedback boutons** : couleur qui restait sur le dernier choix (réutilisation de romaji + focus mobile)
 
 ## Commandes
 
@@ -99,5 +105,5 @@ cd ~/hirakana && bash deploy/deploy.sh
 - Dakuten / handakuten (が, ぱ…)
 - Mode inverse (romaji → kana)
 - Dakuten combinés, yōon (きゃ, しゅ…)
-- Statistiques détaillées, streak
+- Streak, statistiques avancées
 - PWA offline complète

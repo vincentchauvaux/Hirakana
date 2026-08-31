@@ -1,5 +1,6 @@
 import type { KanaCharacter, RowId } from "../types";
 import { ROW_ORDER } from "../types";
+import { getMistakeWeight } from "./mistakes";
 
 export function shuffleArray<T>(array: T[]): T[] {
   const copy = [...array];
@@ -45,6 +46,14 @@ export function pickRandomCharacter(
   characters: KanaCharacter[],
   excludeRomaji?: string
 ): KanaCharacter | null {
+  return pickWeightedCharacter(characters, {}, excludeRomaji);
+}
+
+export function pickWeightedCharacter(
+  characters: KanaCharacter[],
+  mistakeCounts: Record<string, number>,
+  excludeRomaji?: string
+): KanaCharacter | null {
   if (characters.length === 0) return null;
 
   const pool =
@@ -53,7 +62,19 @@ export function pickRandomCharacter(
       : characters;
 
   const source = pool.length > 0 ? pool : characters;
-  return source[Math.floor(Math.random() * source.length)];
+
+  const totalWeight = source.reduce(
+    (sum, char) => sum + getMistakeWeight(mistakeCounts[char.romaji] ?? 0),
+    0
+  );
+
+  let roll = Math.random() * totalWeight;
+  for (const char of source) {
+    roll -= getMistakeWeight(mistakeCounts[char.romaji] ?? 0);
+    if (roll <= 0) return char;
+  }
+
+  return source[source.length - 1];
 }
 
 export function calcLevelProgress(

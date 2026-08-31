@@ -4,16 +4,25 @@ import {
   DEFAULT_PROGRESS,
   ROW_LABELS,
   ROW_ORDER,
+  type AnswerFeedback,
   type GameProgress,
   type KanaCharacter,
+  type MistakeStats,
   type ScriptId,
 } from "../types";
+import {
+  clearAllMistakes,
+  clearMistakesForScript,
+  getTopMistakes,
+  loadMistakes,
+  recordMistake,
+} from "../utils/mistakes";
 import {
   calcLevelProgress,
   generateAnswers,
   getCurrentRow,
   getUnlockedCharacters,
-  pickRandomCharacter,
+  pickWeightedCharacter,
 } from "../utils/quiz";
 
 const STORAGE_KEY = "hirakana-progress";
@@ -32,20 +41,28 @@ function saveProgress(progress: GameProgress) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
 }
 
+function blurActiveElement() {
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+}
+
 export function useQuizGame(answerCount: 4 | 6 = 6) {
   const [progress, setProgress] = useState<GameProgress>(loadProgress);
+  const [mistakes, setMistakes] = useState<MistakeStats>(loadMistakes);
   const [currentScript, setCurrentScript] = useState<ScriptId>("hiragana");
   const [currentCharacter, setCurrentCharacter] = useState<KanaCharacter | null>(
     null
   );
   const [answers, setAnswers] = useState<string[]>([]);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [answerFeedback, setAnswerFeedback] = useState<AnswerFeedback>(null);
   const [isLocked, setIsLocked] = useState(false);
 
   const scriptData = SCRIPTS[currentScript];
   const scriptProgress = progress[currentScript];
   const currentLevel = scriptProgress.level;
   const masteredRomaji = scriptProgress.masteredRomaji;
+  const scriptMistakes = mistakes[currentScript];
 
   const unlockedCharacters = useMemo(
     () => getUnlockedCharacters(scriptData, currentLevel),
@@ -58,46 +75,67 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
     masteredRomaji.length,
     unlockedCharacters.length
   );
+  const topMistakes = useMemo(
+    () => getTopMistakes(mistakes, currentScript),
+    [mistakes, currentScript]
+  );
 
-  const resetScriptProgress = useCallback((script: ScriptId) => {
-    setProgress((prev) => {
-      const next = {
-        ...prev,
-        [script]: { level: 0, masteredRomaji: [] },
-      };
-      saveProgress(next);
-      return next;
-    });
-    if (script === currentScript) {
-      setCurrentCharacter(null);
-      setSelectedAnswer(null);
-      setIsLocked(false);
-    }
-  }, [currentScript]);
+  const clearFeedback = useCallback(() => {
+    setAnswerFeedback(null);
+    blurActiveElement();
+  }, []);
+
+  const resetScriptProgress = useCallback(
+    (script: ScriptId) => {
+      setProgress((prev) => {
+        const next = {
+          ...prev,
+          [script]: { level: 0, masteredRomaji: [] },
+        };
+        saveProgress(next);
+        return next;
+      });
+      setMistakes((prev) => clearMistakesForScript(prev, script));
+      if (script === currentScript) {
+        setCurrentCharacter(null);
+        clearFeedback();
+        setIsLocked(false);
+      }
+    },
+    [clearFeedback, currentScript]
+  );
 
   const resetAllProgress = useCallback(() => {
     setProgress(DEFAULT_PROGRESS);
     saveProgress(DEFAULT_PROGRESS);
+    setMistakes(clearAllMistakes());
     setCurrentCharacter(null);
-    setSelectedAnswer(null);
+    clearFeedback();
     setIsLocked(false);
-  }, []);
+  }, [clearFeedback]);
 
-  const handleScriptChange = useCallback((script: ScriptId) => {
-    setCurrentScript(script);
-    setCurrentCharacter(null);
-    setSelectedAnswer(null);
-    setIsLocked(false);
-  }, []);
+  const handleScriptChange = useCallback(
+    (script: ScriptId) => {
+      setCurrentScript(script);
+      setCurrentCharacter(null);
+      clearFeedback();
+      setIsLocked(false);
+    },
+    [clearFeedback]
+  );
 
   const advanceCharacter = useCallback(
     (excludeRomaji?: string) => {
-      const next = pickRandomCharacter(unlockedCharacters, excludeRomaji);
+      const next = pickWeightedCharacter(
+        unlockedCharacters,
+        scriptMistakes,
+        excludeRomaji
+      );
       setCurrentCharacter(next);
-      setSelectedAnswer(null);
+      clearFeedback();
       setIsLocked(false);
     },
-    [unlockedCharacters]
+    [clearFeedback, scriptMistakes, unlockedCharacters]
   );
 
   useEffect(() => {
@@ -118,19 +156,21 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
       return;
     }
 
+    clearFeedback();
     const allRomaji = getAllRomaji(scriptData);
     setAnswers(generateAnswers(currentCharacter.romaji, allRomaji, answerCount));
-    setSelectedAnswer(null);
-  }, [answerCount, currentCharacter, scriptData]);
+  }, [answerCount, clearFeedback, currentCharacter, scriptData]);
 
   const handleAnswerSelect = useCallback(
     (answer: string) => {
       if (isLocked || !currentCharacter || isComplete) return;
 
-      setSelectedAnswer(answer);
-      setIsLocked(true);
-
       const isCorrect = answer === currentCharacter.romaji;
+      setAnswerFeedback({
+        answer,
+        status: isCorrect ? "correct" : "wrong",
+      });
+      setIsLocked(true);
 
       if (isCorrect) {
         const alreadyMastered = masteredRomaji.includes(currentCharacter.romaji);
@@ -142,6 +182,8 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
           nextMastered.length === unlockedCharacters.length;
 
         setTimeout(() => {
+          clearFeedback();
+
           if (levelComplete) {
             const nextLevel = currentLevel + 1;
             setProgress((prev) => {
@@ -156,6 +198,7 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
               return next;
             });
             setCurrentCharacter(null);
+            setIsLocked(false);
           } else {
             setProgress((prev) => {
               const next = {
@@ -172,14 +215,19 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
           }
         }, 400);
       } else {
+        setMistakes((prev) =>
+          recordMistake(prev, currentScript, currentCharacter.romaji)
+        );
+
         setTimeout(() => {
-          setSelectedAnswer(null);
+          clearFeedback();
           setIsLocked(false);
         }, 800);
       }
     },
     [
       advanceCharacter,
+      clearFeedback,
       currentCharacter,
       currentLevel,
       currentScript,
@@ -194,7 +242,7 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
     currentScript,
     currentCharacter,
     answers,
-    selectedAnswer,
+    answerFeedback,
     currentLevel,
     currentRow,
     rowLabel: currentRow ? ROW_LABELS[currentRow] : null,
@@ -203,6 +251,7 @@ export function useQuizGame(answerCount: 4 | 6 = 6) {
     unlockedCount: unlockedCharacters.length,
     masteredCount: masteredRomaji.length,
     totalCharacters: scriptData.length,
+    topMistakes,
     handleScriptChange,
     handleAnswerSelect,
     resetScriptProgress,

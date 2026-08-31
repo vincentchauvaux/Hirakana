@@ -18,6 +18,19 @@ export interface GameProgress {
   katakana: ScriptProgress;
 }
 
+export type MistakeStats = Record<ScriptId, Record<string, number>>;
+
+export type AnswerFeedback = {
+  answer: string;
+  status: "correct" | "wrong";
+} | null;
+
+export interface MistakeEntry {
+  char: string;
+  romaji: string;
+  count: number;
+}
+
 export const ROW_ORDER: RowId[] = ["a", "k", "sh", "ts", "n"];
 
 export const ROW_LABELS: Record<RowId, string> = {
@@ -31,4 +44,9 @@ export const ROW_LABELS: Record<RowId, string> = {
 export const DEFAULT_PROGRESS: GameProgress = {
   hiragana: { level: 0, masteredRomaji: [] },
   katakana: { level: 0, masteredRomaji: [] },
+};
+
+export const DEFAULT_MISTAKES: MistakeStats = {
+  hiragana: {},
+  katakana: {},
 };

@@ -1,11 +1,12 @@
 import { X } from "lucide-react";
 import type { Preferences } from "../hooks/usePreferences";
-import type { ScriptId } from "../types";
+import type { MistakeEntry, ScriptId } from "../types";
 
 interface SettingsPanelProps {
   open: boolean;
   preferences: Preferences;
   currentScript: ScriptId;
+  topMistakes: MistakeEntry[];
   onClose: () => void;
   onUpdatePreferences: (patch: Partial<Preferences>) => void;
   onResetScript: (script: ScriptId) => void;
@@ -16,6 +17,7 @@ export default function SettingsPanel({
   open,
   preferences,
   currentScript,
+  topMistakes,
   onClose,
   onUpdatePreferences,
   onResetScript,
@@ -72,6 +74,38 @@ export default function SettingsPanel({
                 </button>
               ))}
             </div>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-medium text-slate-300 mb-3">
+              Points difficiles
+            </h3>
+            <p className="text-xs text-slate-400 mb-3">
+              Ces caractères reviennent plus souvent dans le quiz.
+            </p>
+            {topMistakes.length > 0 ? (
+              <ul className="space-y-2">
+                {topMistakes.map((entry) => (
+                  <li
+                    key={entry.romaji}
+                    className="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-700/50 text-sm"
+                  >
+                    <span>
+                      <span className="text-lg mr-2">{entry.char}</span>
+                      <span className="text-slate-300">{entry.romaji}</span>
+                    </span>
+                    <span className="text-rose-300 tabular-nums">
+                      {entry.count} erreur{entry.count > 1 ? "s" : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Aucune erreur enregistrée pour{" "}
+                <span className="capitalize">{currentScript}</span>.
+              </p>
+            )}
           </section>
 
           <section>
