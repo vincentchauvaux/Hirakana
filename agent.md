@@ -49,7 +49,7 @@ hirakana/
 - **Progression** : chaque caractère du niveau doit être trouvé une fois ; passage au niveau suivant automatique
 - **Fin** : écran de félicitations + bascule vers l'autre script
 - **Reset** : bouton ↺ dans l'en-tête (script courant) ; panneau **Préférences** (⚙) pour reset par script ou global
-- **Préférences** : mode quiz (choix / saisie), nombre de propositions (4 ou 6 en mode choix), persistées dans `localStorage`
+- **Préférences** : mode quiz (choix / saisie), nombre de propositions (4, 6, 8 ou 10 en mode choix), persistées dans `localStorage`
 - **Erreurs pondérées** : chaque erreur incrémente un compteur par romaji/script ; sélection du prochain caractère via `pickWeightedCharacter` (poids = `1 + erreurs × 2`)
 - **Points difficiles** : top 5 visible dans Préférences (⚙) ; les caractères ratés reviennent plus souvent
 - **Feedback visuel** : état `answerFeedback` (correct/wrong) effacé avant changement de question + `blur()` pour éviter focus/hover collant sur mobile

@@ -17,8 +17,9 @@ export function generateAnswers(
   count = 6
 ): string[] {
   const answers = new Set<string>([correctAnswer]);
+  const targetCount = Math.min(count, allAnswers.length);
 
-  while (answers.size < count) {
+  while (answers.size < targetCount) {
     const randomAnswer =
       allAnswers[Math.floor(Math.random() * allAnswers.length)];
     if (randomAnswer !== correctAnswer) {

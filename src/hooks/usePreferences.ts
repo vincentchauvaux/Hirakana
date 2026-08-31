@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 
-import type { QuizMode } from "../types";
+import { ANSWER_COUNT_OPTIONS, type AnswerCount, type QuizMode } from "../types";
 
 export interface Preferences {
-  answerCount: 4 | 6;
+  answerCount: AnswerCount;
   quizMode: QuizMode;
 }
 
@@ -14,13 +14,19 @@ export const DEFAULT_PREFERENCES: Preferences = {
   quizMode: "choice",
 };
 
+function isAnswerCount(value: unknown): value is AnswerCount {
+  return ANSWER_COUNT_OPTIONS.includes(value as AnswerCount);
+}
+
 function loadPreferences(): Preferences {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_PREFERENCES;
     const parsed = JSON.parse(raw) as Partial<Preferences>;
     return {
-      answerCount: parsed.answerCount === 4 ? 4 : 6,
+      answerCount: isAnswerCount(parsed.answerCount)
+        ? parsed.answerCount
+        : DEFAULT_PREFERENCES.answerCount,
       quizMode: parsed.quizMode === "text" ? "text" : "choice",
     };
   } catch {

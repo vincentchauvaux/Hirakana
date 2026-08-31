@@ -2,6 +2,10 @@ export type ScriptId = "hiragana" | "katakana";
 
 export type QuizMode = "choice" | "text";
 
+export type AnswerCount = 4 | 6 | 8 | 10;
+
+export const ANSWER_COUNT_OPTIONS: AnswerCount[] = [4, 6, 8, 10];
+
 export type RowId = "a" | "k" | "sh" | "ts" | "n";
 
 export interface KanaCharacter {

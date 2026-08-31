@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import type { Preferences } from "../hooks/usePreferences";
-import type { MistakeEntry, ScriptId } from "../types";
+import { ANSWER_COUNT_OPTIONS, type MistakeEntry, type ScriptId } from "../types";
 
 interface SettingsPanelProps {
   open: boolean;
@@ -82,8 +82,8 @@ export default function SettingsPanel({
                 <label className="block text-xs text-slate-400 mb-2">
                   Nombre de propositions
                 </label>
-                <div className="flex gap-2">
-                  {([4, 6] as const).map((count) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {ANSWER_COUNT_OPTIONS.map((count) => (
                     <button
                       key={count}
                       type="button"

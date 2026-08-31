@@ -4,6 +4,7 @@ import {
   DEFAULT_PROGRESS,
   ROW_LABELS,
   ROW_ORDER,
+  type AnswerCount,
   type AnswerFeedback,
   type GameProgress,
   type KanaCharacter,
@@ -50,7 +51,7 @@ function blurActiveElement() {
 }
 
 export function useQuizGame(
-  answerCount: 4 | 6 = 6,
+  answerCount: AnswerCount = 6,
   quizMode: QuizMode = "choice"
 ) {
   const [progress, setProgress] = useState<GameProgress>(loadProgress);
