@@ -23,10 +23,12 @@ export default function App() {
     answerFeedback,
     currentLevel,
     rowLabel,
+    totalLevels,
     levelProgress,
     isComplete,
     masteredCount,
-    unlockedCount,
+    rowMasteredCount,
+    rowCount,
     totalCharacters,
     topMistakes,
     handleScriptChange,
@@ -90,7 +92,8 @@ export default function App() {
             <ProgressBar
               progress={levelProgress}
               label={rowLabel ?? "Niveau"}
-              detail={`${masteredCount} / ${unlockedCount}`}
+              detail={`${rowMasteredCount} / ${rowCount}`}
+              subdetail={`Niveau ${currentLevel + 1} / ${totalLevels} · ${masteredCount} / ${totalCharacters} caractères`}
             />
           </div>
 

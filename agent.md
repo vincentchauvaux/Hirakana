@@ -1,6 +1,6 @@
 # Agent — HiraKata
 
-> Dernière mise à jour : 2026-09-01 (gojūon complet, 10 niveaux)
+> Dernière mise à jour : 2026-09-02 (poursuite après les 5 premières rangées)
 
 ## Vision
 
@@ -46,8 +46,9 @@ hirakana/
 - **Scripts** : hiragana (46 car.) / katakana (46 car.) — gojūon moderne (sans ゐ/ゑ obsolètes)
 - **Niveaux** : 10 rangées débloquées progressivement (`ROW_ORDER`) : あかさたなはまやらわ/ん
 - **Quiz** : choix multiples (4, 6, 8 ou 10 propositions, tirées des rangées déjà débloquées) ou **saisie libre** (romaji tapé + Valider / Entrée)
-- **Progression** : chaque caractère du niveau doit être trouvé une fois ; passage au niveau suivant automatique ; seuls les caractères **pas encore maîtrisés** sont proposés ; limite de répétitions par caractère et par niveau (réglable, défaut 2)
-- **Fin** : écran de félicitations + bascule vers l'autre script
+- **Progression** : chaque caractère de la **rangée courante** doit être trouvé une fois ; passage au niveau suivant automatique (les rangées déjà validées restent maîtrisées) ; seuls les caractères **pas encore maîtrisés de la rangée** sont proposés ; limite de répétitions par caractère et par niveau (réglable, défaut 2)
+- **Fin** : écran de félicitations + bascule vers l'autre script — uniquement après les **10** rangées (46 caractères)
+- **Sauvegarde ancienne (5 rangées)** : `level === 5` avec mastered vide est migré vers la rangée は, sans écran Bravo anticipé
 - **Reset** : bouton ↺ dans l'en-tête (script courant) ; panneau **Préférences** (⚙) pour reset par script ou global
 - **Préférences** : mode quiz (choix / saisie), nombre de propositions (4, 6, 8 ou 10 en mode choix), **répétitions max par niveau** (1, 2, 3, 5 ou illimité), persistées dans `localStorage` ; panneau plein écran mobile avec bouton **Retour au quiz** (en-tête + pied de page)
 - **Erreurs pondérées** : chaque erreur incrémente un compteur par romaji/script ; sélection du prochain caractère via `pickWeightedCharacter` (poids = `1 + erreurs × 2`)
@@ -64,6 +65,7 @@ hirakana/
 5. **CRA** : migré vers Vite + TypeScript
 6. **Feedback boutons** : couleur qui restait sur le dernier choix (réutilisation de romaji + focus mobile)
 7. **Questions empilées** : cycle de phases + démontage complet de la grille entre les questions
+8. **Fin à 25/25** : l'écran Bravo se déclenchait après les 5 anciennes rangées ; la rangée courante suffit désormais à passer au niveau suivant, et une sauvegarde `level: 5` reprend sur は
 
 ## Commandes
 
@@ -88,7 +90,7 @@ Guide : **[deploy/README.md](deploy/README.md)** — cohabitation avec **canopee
 | Diagnostic | `bash deploy/check-vps.sh` |
 | Base path build | `VITE_BASE_PATH=/hirakana/` |
 
-**État VPS (2026-09-01)** : conteneur `hirakana-web` actif (`127.0.0.1:3020`). Snippet Nginx `hirakana.conf` inclus dans `streamtv`. Public : `https://vps-e09ed6db.vps.ovh.net/hirakana/` → **200**. Dernière version : gojūon complet (10 niveaux, 46 caractères).
+**État VPS (2026-09-02)** : conteneur `hirakana-web` actif (`127.0.0.1:3020`). Public : `https://vps-e09ed6db.vps.ovh.net/hirakana/` → **200**. Dernière version : gojūon 10 niveaux, reprise après 25/25 vers は.
 
 **Mise à jour sur le VPS** :
 

@@ -1,4 +1,4 @@
-import type { KanaCharacter, RowId } from "../types";
+import type { KanaCharacter, RowId, ScriptProgress } from "../types";
 import { ROW_ORDER } from "../types";
 import { getMistakeWeight } from "./mistakes";
 
@@ -62,8 +62,61 @@ export function getUnlockedCharacters(
   );
 }
 
+export function getRowCharacters(
+  scriptData: KanaCharacter[],
+  row: RowId | null
+): KanaCharacter[] {
+  if (!row) return [];
+  return scriptData.filter((char) => char.row === row);
+}
+
+export function isRowFullyMastered(
+  rowCharacters: KanaCharacter[],
+  masteredRomaji: string[]
+): boolean {
+  return (
+    rowCharacters.length > 0 &&
+    rowCharacters.every((char) => masteredRomaji.includes(char.romaji))
+  );
+}
+
 export function getCurrentRow(level: number): RowId | null {
   return ROW_ORDER[level] ?? null;
+}
+
+/** Reprend une sauvegarde (ex. fin des 5 anciennes rangées) pour enchaîner sur le gojūon. */
+export function migrateScriptProgress(
+  saved: Partial<ScriptProgress> | undefined,
+  scriptData: KanaCharacter[]
+): ScriptProgress {
+  let level = typeof saved?.level === "number" ? saved.level : 0;
+  let masteredRomaji = Array.isArray(saved?.masteredRomaji)
+    ? saved.masteredRomaji.filter((item) => typeof item === "string")
+    : [];
+
+  if (level < 0) level = 0;
+  if (level > ROW_ORDER.length) level = ROW_ORDER.length;
+
+  if (level >= ROW_ORDER.length) {
+    return { level: ROW_ORDER.length, masteredRomaji };
+  }
+
+  if (level > 0 && masteredRomaji.length === 0) {
+    masteredRomaji = scriptData
+      .filter((char) => {
+        const index = ROW_ORDER.indexOf(char.row);
+        return index >= 0 && index < level;
+      })
+      .map((char) => char.romaji);
+  }
+
+  while (level < ROW_ORDER.length) {
+    const rowCharacters = getRowCharacters(scriptData, ROW_ORDER[level]);
+    if (!isRowFullyMastered(rowCharacters, masteredRomaji)) break;
+    level += 1;
+  }
+
+  return { level, masteredRomaji };
 }
 
 export function pickRandomCharacter(

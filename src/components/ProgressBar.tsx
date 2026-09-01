@@ -2,12 +2,14 @@ interface ProgressBarProps {
   progress: number;
   label: string;
   detail: string;
+  subdetail?: string;
 }
 
 export default function ProgressBar({
   progress,
   label,
   detail,
+  subdetail,
 }: ProgressBarProps) {
   return (
     <div className="w-full max-w-md mb-6">
@@ -25,6 +27,9 @@ export default function ProgressBar({
           aria-valuemax={100}
         />
       </div>
+      {subdetail ? (
+        <p className="text-xs text-slate-500 mt-1.5">{subdetail}</p>
+      ) : null}
     </div>
   );
 }
