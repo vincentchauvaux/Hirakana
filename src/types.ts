@@ -11,7 +11,7 @@ export type MaxAppearances = 0 | 1 | 2 | 3 | 5;
 
 export const MAX_APPEARANCE_OPTIONS: MaxAppearances[] = [1, 2, 3, 5, 0];
 
-export type RowId = "a" | "k" | "sh" | "ts" | "n";
+export type RowId = "a" | "k" | "sh" | "ts" | "n" | "h" | "m" | "y" | "r" | "w";
 
 export interface KanaCharacter {
   char: string;
@@ -42,7 +42,18 @@ export interface MistakeEntry {
   count: number;
 }
 
-export const ROW_ORDER: RowId[] = ["a", "k", "sh", "ts", "n"];
+export const ROW_ORDER: RowId[] = [
+  "a",
+  "k",
+  "sh",
+  "ts",
+  "n",
+  "h",
+  "m",
+  "y",
+  "r",
+  "w",
+];
 
 export const ROW_LABELS: Record<RowId, string> = {
   a: "あ — voyelles",
@@ -50,6 +61,11 @@ export const ROW_LABELS: Record<RowId, string> = {
   sh: "さ — S/SH",
   ts: "た — T/TS",
   n: "な — N",
+  h: "は — H/F",
+  m: "ま — M",
+  y: "や — Y",
+  r: "ら — R",
+  w: "わ — W / ん",
 };
 
 export const DEFAULT_PROGRESS: GameProgress = {

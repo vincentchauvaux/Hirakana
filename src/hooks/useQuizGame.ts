@@ -163,7 +163,7 @@ export function useQuizGame(
       };
 
       if (quizMode === "choice") {
-        const allRomaji = getAllRomaji(scriptData);
+        const allRomaji = getAllRomaji(unlockedCharacters);
         setAnswers(generateAnswers(next.romaji, allRomaji, answerCount));
       } else {
         setAnswers([]);
@@ -180,7 +180,6 @@ export function useQuizGame(
       currentScript,
       maxAppearances,
       quizMode,
-      scriptData,
       scriptMistakes,
       syncAppearanceTracking,
       unlockedCharacters,

@@ -5,7 +5,7 @@ Apprenez les **hiragana** et **katakana** par quiz progressifs.
 ## Fonctionnalités
 
 - Quiz à 6 choix (lecture romaji)
-- 5 niveaux par script (voyelles → K → S → T → N)
+- 10 niveaux par script (gojūon : voyelles → K → S → T → N → H → M → Y → R → W/ん)
 - Progression sauvegardée automatiquement
 - Interface responsive, thème sombre
 

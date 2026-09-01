@@ -1,10 +1,10 @@
 # Agent — HiraKata
 
-> Dernière mise à jour : 2026-08-31 (option répétitions par niveau)
+> Dernière mise à jour : 2026-09-01 (gojūon complet, 10 niveaux)
 
 ## Vision
 
-Application web d'apprentissage des **hiragana** et **katakana** japonais, par quiz à choix multiples (romaji), avec progression par rangées (voyelles → K → S → T → N), déployable sur VPS OVH.
+Application web d'apprentissage des **hiragana** et **katakana** japonais, par quiz à choix multiples (romaji), avec progression par rangées du gojūon (voyelles → K → S → T → N → H → M → Y → R → W/ん), déployable sur VPS OVH.
 
 ## Stack
 
@@ -43,9 +43,9 @@ hirakana/
 
 ## Jeu
 
-- **Scripts** : hiragana (25 car.) / katakana (25 car.)
-- **Niveaux** : 5 rangées débloquées progressivement (`ROW_ORDER`)
-- **Quiz** : choix multiples (4 ou 6 propositions) ou **saisie libre** (romaji tapé + Valider / Entrée)
+- **Scripts** : hiragana (46 car.) / katakana (46 car.) — gojūon moderne (sans ゐ/ゑ obsolètes)
+- **Niveaux** : 10 rangées débloquées progressivement (`ROW_ORDER`) : あかさたなはまやらわ/ん
+- **Quiz** : choix multiples (4, 6, 8 ou 10 propositions, tirées des rangées déjà débloquées) ou **saisie libre** (romaji tapé + Valider / Entrée)
 - **Progression** : chaque caractère du niveau doit être trouvé une fois ; passage au niveau suivant automatique ; seuls les caractères **pas encore maîtrisés** sont proposés ; limite de répétitions par caractère et par niveau (réglable, défaut 2)
 - **Fin** : écran de félicitations + bascule vers l'autre script
 - **Reset** : bouton ↺ dans l'en-tête (script courant) ; panneau **Préférences** (⚙) pour reset par script ou global
@@ -106,6 +106,6 @@ cd ~/hirakana && bash deploy/deploy.sh
 
 - Dakuten / handakuten (が, ぱ…)
 - Mode inverse (romaji → kana)
-- Dakuten combinés, yōon (きゃ, しゅ…)
+- Yōon (きゃ, しゅ…)
 - Streak, statistiques avancées
 - PWA offline complète
