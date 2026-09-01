@@ -88,7 +88,7 @@ Guide : **[deploy/README.md](deploy/README.md)** — cohabitation avec **canopee
 | Diagnostic | `bash deploy/check-vps.sh` |
 | Base path build | `VITE_BASE_PATH=/hirakana/` |
 
-**État VPS (2026-08-31)** : conteneur `hirakana-web` actif (`127.0.0.1:3020`). Snippet Nginx `hirakana.conf` inclus dans `streamtv`. Public : `https://vps-e09ed6db.vps.ovh.net/hirakana/` → **200**. Dernière version : erreurs pondérées, icônes いカ, mode saisie libre.
+**État VPS (2026-09-01)** : conteneur `hirakana-web` actif (`127.0.0.1:3020`). Snippet Nginx `hirakana.conf` inclus dans `streamtv`. Public : `https://vps-e09ed6db.vps.ovh.net/hirakana/` → **200**. Dernière version : gojūon complet (10 niveaux, 46 caractères).
 
 **Mise à jour sur le VPS** :
 
