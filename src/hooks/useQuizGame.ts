@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SCRIPTS, getAllRomaji } from "../data/characters";
+import { SCRIPTS } from "../data/characters";
 import {
   DEFAULT_PROGRESS,
   ROW_LABELS,
   ROW_ORDER,
   type AnswerCount,
   type AnswerFeedback,
+  type AnswerPool,
   type GameProgress,
   type KanaCharacter,
   type MistakeStats,
+  type QuizDirection,
   type QuizMode,
   type ScriptId,
   type MaxAppearances,
@@ -23,11 +25,11 @@ import {
 import {
   calcLevelProgress,
   filterByAppearanceLimit,
-  generateAnswers,
+  generateChoiceAnswers,
   getCurrentRow,
   getRowCharacters,
   getUnlockedCharacters,
-  isRomajiMatch,
+  isQuizAnswerCorrect,
   isRowFullyMastered,
   migrateScriptProgress,
   pickWeightedCharacter,
@@ -68,7 +70,9 @@ function blurActiveElement() {
 export function useQuizGame(
   answerCount: AnswerCount = 6,
   quizMode: QuizMode = "choice",
-  maxAppearances: MaxAppearances = 2
+  maxAppearances: MaxAppearances = 2,
+  answerPool: AnswerPool = "level",
+  quizDirection: QuizDirection = "kana-to-romaji"
 ) {
   const [progress, setProgress] = useState<GameProgress>(loadProgress);
   const [mistakes, setMistakes] = useState<MistakeStats>(loadMistakes);
@@ -183,8 +187,11 @@ export function useQuizGame(
       };
 
       if (quizMode === "choice") {
-        const allRomaji = getAllRomaji(unlockedCharacters);
-        setAnswers(generateAnswers(next.romaji, allRomaji, answerCount));
+        const source =
+          answerPool === "all" ? scriptData : unlockedCharacters;
+        setAnswers(
+          generateChoiceAnswers(next, source, answerCount, quizDirection)
+        );
       } else {
         setAnswers([]);
       }
@@ -197,8 +204,10 @@ export function useQuizGame(
     },
     [
       answerCount,
+      answerPool,
       currentScript,
       maxAppearances,
+      quizDirection,
       quizMode,
       scriptData,
       scriptMistakes,
@@ -206,6 +215,19 @@ export function useQuizGame(
       unlockedCharacters,
     ]
   );
+
+  const currentCharacterRef = useRef(currentCharacter);
+  currentCharacterRef.current = currentCharacter;
+
+  useEffect(() => {
+    if (quizMode !== "choice") return;
+    const character = currentCharacterRef.current;
+    if (!character) return;
+    const source = answerPool === "all" ? scriptData : unlockedCharacters;
+    setAnswers(
+      generateChoiceAnswers(character, source, answerCount, quizDirection)
+    );
+  }, [answerCount, answerPool, quizDirection, quizMode]);
 
   const resetScriptProgress = useCallback(
     (script: ScriptId) => {
@@ -274,7 +296,11 @@ export function useQuizGame(
     (answer: string) => {
       if (phase !== "asking" || !currentCharacter || isComplete) return;
 
-      const isCorrect = isRomajiMatch(answer, currentCharacter.romaji);
+      const isCorrect = isQuizAnswerCorrect(
+        answer,
+        currentCharacter,
+        quizDirection
+      );
       setAnswerFeedback({
         answer,
         status: isCorrect ? "correct" : "wrong",
@@ -349,6 +375,7 @@ export function useQuizGame(
       currentScript,
       isComplete,
       phase,
+      quizDirection,
       scriptData,
       startLoading,
       loadNextQuestion,

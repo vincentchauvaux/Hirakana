@@ -1,10 +1,10 @@
 # Agent — HiraKata
 
-> Dernière mise à jour : 2026-09-02 (poursuite après les 5 premières rangées)
+> Dernière mise à jour : 2026-09-02 (mode inverse romaji → kana)
 
 ## Vision
 
-Application web d'apprentissage des **hiragana** et **katakana** japonais, par quiz à choix multiples (romaji), avec progression par rangées du gojūon (voyelles → K → S → T → N → H → M → Y → R → W/ん), déployable sur VPS OVH.
+Application web d'apprentissage des **hiragana** et **katakana** japonais, par quiz à choix multiples (romaji ↔ kana), avec progression par rangées du gojūon (voyelles → K → S → T → N → H → M → Y → R → W/ん), déployable sur VPS OVH.
 
 ## Stack
 
@@ -45,12 +45,14 @@ hirakana/
 
 - **Scripts** : hiragana (46 car.) / katakana (46 car.) — gojūon moderne (sans ゐ/ゑ obsolètes)
 - **Niveaux** : 10 rangées débloquées progressivement (`ROW_ORDER`) : あかさたなはまやらわ/ん
-- **Quiz** : choix multiples (4, 6, 8 ou 10 propositions, tirées des rangées déjà débloquées) ou **saisie libre** (romaji tapé + Valider / Entrée)
+- **Quiz** : choix multiples (4, 6, 8 ou 10 propositions) ou **saisie libre** (romaji tapé + Valider / Entrée)
+- **Sens** : **kana → romaji** (défaut) ou **romaji → kana** (on affiche la lecture, on choisit le caractère) ; persisté dans `hirakana-preferences`
+- **Source des propositions** (mode choix) : **caractères du niveau** (rangées déjà vues + courante, défaut) ou **tous les caractères** du syllabaire (plus difficile) ; persisté dans `hirakana-preferences`
 - **Progression** : chaque caractère de la **rangée courante** doit être trouvé une fois ; passage au niveau suivant automatique (les rangées déjà validées restent maîtrisées) ; seuls les caractères **pas encore maîtrisés de la rangée** sont proposés ; limite de répétitions par caractère et par niveau (réglable, défaut 2)
 - **Fin** : écran de félicitations + bascule vers l'autre script — uniquement après les **10** rangées (46 caractères)
 - **Sauvegarde ancienne (5 rangées)** : `level === 5` avec mastered vide est migré vers la rangée は, sans écran Bravo anticipé
 - **Reset** : bouton ↺ dans l'en-tête (script courant) ; panneau **Préférences** (⚙) pour reset par script ou global
-- **Préférences** : mode quiz (choix / saisie), nombre de propositions (4, 6, 8 ou 10 en mode choix), **répétitions max par niveau** (1, 2, 3, 5 ou illimité), persistées dans `localStorage` ; panneau plein écran mobile avec bouton **Retour au quiz** (en-tête + pied de page)
+- **Préférences** : mode quiz (choix / saisie), **sens** (kana → romaji ou romaji → kana), nombre de propositions (4, 6, 8 ou 10 en mode choix), **source des propositions** (niveau ou tout le syllabaire), **répétitions max par niveau** (1, 2, 3, 5 ou illimité), persistées dans `localStorage` ; panneau plein écran mobile avec bouton **Retour au quiz** (en-tête + pied de page)
 - **Erreurs pondérées** : chaque erreur incrémente un compteur par romaji/script ; sélection du prochain caractère via `pickWeightedCharacter` (poids = `1 + erreurs × 2`)
 - **Points difficiles** : top 5 visible dans Préférences (⚙) ; les caractères ratés reviennent plus souvent
 - **Feedback visuel** : contour vert/rouge sur la réponse sélectionnée (rapide), puis passage à la question suivante sans scroll automatique ni flash « Chargement… »
@@ -90,7 +92,7 @@ Guide : **[deploy/README.md](deploy/README.md)** — cohabitation avec **canopee
 | Diagnostic | `bash deploy/check-vps.sh` |
 | Base path build | `VITE_BASE_PATH=/hirakana/` |
 
-**État VPS (2026-09-02)** : conteneur `hirakana-web` actif (`127.0.0.1:3020`). Public : `https://vps-e09ed6db.vps.ovh.net/hirakana/` → **200**. Dernière version : gojūon 10 niveaux, reprise après 25/25 vers は.
+**État VPS (2026-09-02)** : conteneur `hirakana-web` actif (`127.0.0.1:3020`). Public : `https://vps-e09ed6db.vps.ovh.net/hirakana/` → **200**. Dernière version : quiz inverse romaji → kana, pool de propositions niveau/tout.
 
 **Mise à jour sur le VPS** :
 
@@ -107,7 +109,6 @@ cd ~/hirakana && bash deploy/deploy.sh
 ## Évolutions possibles
 
 - Dakuten / handakuten (が, ぱ…)
-- Mode inverse (romaji → kana)
 - Yōon (きゃ, しゅ…)
 - Streak, statistiques avancées
 - PWA offline complète

@@ -4,13 +4,17 @@ import {
   ANSWER_COUNT_OPTIONS,
   MAX_APPEARANCE_OPTIONS,
   type AnswerCount,
+  type AnswerPool,
   type MaxAppearances,
+  type QuizDirection,
   type QuizMode,
 } from "../types";
 
 export interface Preferences {
   answerCount: AnswerCount;
   quizMode: QuizMode;
+  quizDirection: QuizDirection;
+  answerPool: AnswerPool;
   maxAppearances: MaxAppearances;
 }
 
@@ -19,6 +23,8 @@ const STORAGE_KEY = "hirakana-preferences";
 export const DEFAULT_PREFERENCES: Preferences = {
   answerCount: 6,
   quizMode: "choice",
+  quizDirection: "kana-to-romaji",
+  answerPool: "level",
   maxAppearances: 2,
 };
 
@@ -28,6 +34,14 @@ function isAnswerCount(value: unknown): value is AnswerCount {
 
 function isMaxAppearances(value: unknown): value is MaxAppearances {
   return MAX_APPEARANCE_OPTIONS.includes(value as MaxAppearances);
+}
+
+function isAnswerPool(value: unknown): value is AnswerPool {
+  return value === "level" || value === "all";
+}
+
+function isQuizDirection(value: unknown): value is QuizDirection {
+  return value === "kana-to-romaji" || value === "romaji-to-kana";
 }
 
 function loadPreferences(): Preferences {
@@ -40,6 +54,12 @@ function loadPreferences(): Preferences {
         ? parsed.answerCount
         : DEFAULT_PREFERENCES.answerCount,
       quizMode: parsed.quizMode === "text" ? "text" : "choice",
+      quizDirection: isQuizDirection(parsed.quizDirection)
+        ? parsed.quizDirection
+        : DEFAULT_PREFERENCES.quizDirection,
+      answerPool: isAnswerPool(parsed.answerPool)
+        ? parsed.answerPool
+        : DEFAULT_PREFERENCES.answerPool,
       maxAppearances: isMaxAppearances(parsed.maxAppearances)
         ? parsed.maxAppearances
         : DEFAULT_PREFERENCES.maxAppearances,

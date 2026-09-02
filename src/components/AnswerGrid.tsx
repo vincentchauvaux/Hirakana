@@ -7,6 +7,7 @@ interface AnswerGridProps {
   disabled: boolean;
   questionId: number;
   compact?: boolean;
+  kanaChoices?: boolean;
 }
 
 export default function AnswerGrid({
@@ -16,6 +17,7 @@ export default function AnswerGrid({
   disabled,
   questionId,
   compact = false,
+  kanaChoices = false,
 }: AnswerGridProps) {
   return (
     <div className={`grid grid-cols-2 w-full max-w-md ${compact ? "gap-2" : "gap-3"}`}>
@@ -25,7 +27,13 @@ export default function AnswerGrid({
         const isWrong = isFeedbackTarget && answerFeedback.status === "wrong";
 
         let className = `text-center rounded-xl font-medium outline-none border-2 bg-slate-800 transition-colors ${
-          compact ? "py-2.5 text-sm" : "py-3.5"
+          compact
+            ? kanaChoices
+              ? "py-2 text-2xl"
+              : "py-2.5 text-sm"
+            : kanaChoices
+              ? "py-3 text-3xl"
+              : "py-3.5"
         } `;
 
         if (isCorrect) {

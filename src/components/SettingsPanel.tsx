@@ -1,6 +1,6 @@
 import { ArrowLeft, X } from "lucide-react";
 import type { Preferences } from "../hooks/usePreferences";
-import { ANSWER_COUNT_OPTIONS, MAX_APPEARANCE_OPTIONS, type MistakeEntry, type ScriptId } from "../types";
+import { ANSWER_COUNT_OPTIONS, ANSWER_POOL_OPTIONS, MAX_APPEARANCE_OPTIONS, QUIZ_DIRECTION_OPTIONS, type MistakeEntry, type ScriptId } from "../types";
 
 interface SettingsPanelProps {
   open: boolean;
@@ -80,6 +80,28 @@ export default function SettingsPanel({
                 </button>
               ))}
             </div>
+            <label className="block text-xs text-slate-400 mb-2">
+              Sens de l&apos;exercice
+            </label>
+            <p className="text-xs text-slate-500 mb-2">
+              Lire le kana, ou retrouver le kana à partir du romaji.
+            </p>
+            <div className="flex gap-2 mb-4">
+              {QUIZ_DIRECTION_OPTIONS.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => onUpdatePreferences({ quizDirection: id })}
+                  className={`flex-1 py-2.5 rounded-lg transition-colors text-sm ${
+                    preferences.quizDirection === id
+                      ? "bg-sky-500 text-white font-medium"
+                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             {preferences.quizMode === "choice" && (
               <>
                 <label className="block text-xs text-slate-400 mb-2">
@@ -98,6 +120,29 @@ export default function SettingsPanel({
                       }`}
                     >
                       {count} choix
+                    </button>
+                  ))}
+                </div>
+                <label className="block text-xs text-slate-400 mb-2 mt-4">
+                  Source des propositions
+                </label>
+                <p className="text-xs text-slate-500 mb-2">
+                  Mauvaises réponses tirées des rangées déjà vues, ou de tout
+                  le syllabaire (plus difficile).
+                </p>
+                <div className="flex flex-col gap-2">
+                  {ANSWER_POOL_OPTIONS.map(({ id, label }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => onUpdatePreferences({ answerPool: id })}
+                      className={`py-2.5 px-3 rounded-lg transition-colors text-sm ${
+                        preferences.answerPool === id
+                          ? "bg-sky-500 text-white font-medium"
+                          : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      }`}
+                    >
+                      {label}
                     </button>
                   ))}
                 </div>

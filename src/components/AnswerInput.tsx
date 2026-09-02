@@ -6,6 +6,7 @@ interface AnswerInputProps {
   answerFeedback: AnswerFeedback;
   correctAnswer: string;
   disabled: boolean;
+  kanaExpected?: boolean;
 }
 
 export default function AnswerInput({
@@ -13,6 +14,7 @@ export default function AnswerInput({
   answerFeedback,
   correctAnswer,
   disabled,
+  kanaExpected = false,
 }: AnswerInputProps) {
   const [value, setValue] = useState("");
 
@@ -46,13 +48,18 @@ export default function AnswerInput({
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Tapez la lecture (romaji)"
+        placeholder={
+          kanaExpected
+            ? "Tapez le caractère"
+            : "Tapez la lecture (romaji)"
+        }
         className={inputClass}
         disabled={disabled || answerFeedback !== null}
         autoComplete="off"
         autoCapitalize="off"
         spellCheck={false}
-        aria-label="Réponse en romaji"
+        lang={kanaExpected ? "ja" : "en"}
+        aria-label={kanaExpected ? "Réponse en kana" : "Réponse en romaji"}
       />
       <button
         type="submit"

@@ -38,7 +38,9 @@ export default function App() {
   } = useQuizGame(
     preferences.answerCount,
     preferences.quizMode,
-    preferences.maxAppearances
+    preferences.maxAppearances,
+    preferences.answerPool,
+    preferences.quizDirection
   );
 
   const hasProgress =
@@ -57,6 +59,12 @@ export default function App() {
   const showQuestion =
     currentCharacter && (phase === "asking" || phase === "feedback");
   const compactQuiz = preferences.answerCount >= 8;
+  const reverseQuiz = preferences.quizDirection === "romaji-to-kana";
+  const prompt = reverseQuiz
+    ? currentScript === "katakana"
+      ? "Quel katakana ?"
+      : "Quel hiragana ?"
+    : "Quelle est la lecture ?";
 
   return (
     <div
@@ -100,15 +108,25 @@ export default function App() {
           {showQuestion ? (
             <div className="w-full max-w-md flex flex-col items-center">
               <CharacterDisplay
-                character={currentCharacter}
+                value={
+                  reverseQuiz
+                    ? currentCharacter.romaji
+                    : currentCharacter.char
+                }
+                prompt={prompt}
                 compact={compactQuiz}
               />
               {preferences.quizMode === "text" ? (
                 <AnswerInput
                   onSubmit={handleAnswerSelect}
                   answerFeedback={answerFeedback}
-                  correctAnswer={currentCharacter.romaji}
+                  correctAnswer={
+                    reverseQuiz
+                      ? currentCharacter.char
+                      : currentCharacter.romaji
+                  }
                   disabled={phase === "feedback"}
+                  kanaExpected={reverseQuiz}
                 />
               ) : (
                 <AnswerGrid
@@ -118,6 +136,7 @@ export default function App() {
                   disabled={phase === "feedback"}
                   questionId={questionId}
                   compact={compactQuiz}
+                  kanaChoices={reverseQuiz}
                 />
               )}
             </div>

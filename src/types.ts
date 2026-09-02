@@ -2,6 +2,21 @@ export type ScriptId = "hiragana" | "katakana";
 
 export type QuizMode = "choice" | "text";
 
+export type QuizDirection = "kana-to-romaji" | "romaji-to-kana";
+
+export const QUIZ_DIRECTION_OPTIONS: { id: QuizDirection; label: string }[] = [
+  { id: "kana-to-romaji", label: "Kana → romaji" },
+  { id: "romaji-to-kana", label: "Romaji → kana" },
+];
+
+/** `level` = rangées déjà vues ; `all` = tout le syllabaire */
+export type AnswerPool = "level" | "all";
+
+export const ANSWER_POOL_OPTIONS: { id: AnswerPool; label: string }[] = [
+  { id: "level", label: "Caractères du niveau" },
+  { id: "all", label: "Tous les caractères" },
+];
+
 export type AnswerCount = 4 | 6 | 8 | 10;
 
 export const ANSWER_COUNT_OPTIONS: AnswerCount[] = [4, 6, 8, 10];

@@ -1,4 +1,4 @@
-import type { KanaCharacter, RowId, ScriptProgress } from "../types";
+import type { KanaCharacter, QuizDirection, RowId, ScriptProgress } from "../types";
 import { ROW_ORDER } from "../types";
 import { getMistakeWeight } from "./mistakes";
 
@@ -51,6 +51,21 @@ export function generateAnswers(
   }
 
   return shuffleArray([...answers]);
+}
+
+export function generateChoiceAnswers(
+  character: KanaCharacter,
+  source: KanaCharacter[],
+  count: number,
+  direction: QuizDirection
+): string[] {
+  const values =
+    direction === "romaji-to-kana"
+      ? source.map((item) => item.char)
+      : source.map((item) => item.romaji);
+  const correct =
+    direction === "romaji-to-kana" ? character.char : character.romaji;
+  return generateAnswers(correct, values, count);
 }
 
 export function getUnlockedCharacters(
@@ -168,4 +183,15 @@ export function normalizeRomaji(input: string): string {
 
 export function isRomajiMatch(input: string, expected: string): boolean {
   return normalizeRomaji(input) === normalizeRomaji(expected);
+}
+
+export function isQuizAnswerCorrect(
+  input: string,
+  character: KanaCharacter,
+  direction: QuizDirection
+): boolean {
+  if (direction === "romaji-to-kana") {
+    return input.trim() === character.char;
+  }
+  return isRomajiMatch(input, character.romaji);
 }
