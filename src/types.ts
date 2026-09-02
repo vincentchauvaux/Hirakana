@@ -36,7 +36,8 @@ export interface KanaCharacter {
 
 export interface ScriptProgress {
   level: number;
-  masteredRomaji: string[];
+  successes: Record<string, number>;
+  failStreaks: Record<string, number>;
 }
 
 export interface GameProgress {
@@ -84,8 +85,8 @@ export const ROW_LABELS: Record<RowId, string> = {
 };
 
 export const DEFAULT_PROGRESS: GameProgress = {
-  hiragana: { level: 0, masteredRomaji: [] },
-  katakana: { level: 0, masteredRomaji: [] },
+  hiragana: { level: 0, successes: {}, failStreaks: {} },
+  katakana: { level: 0, successes: {}, failStreaks: {} },
 };
 
 export const DEFAULT_MISTAKES: MistakeStats = {

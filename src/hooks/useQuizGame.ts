@@ -24,15 +24,18 @@ import {
 } from "../utils/mistakes";
 import {
   calcLevelProgress,
-  filterByAppearanceLimit,
+  earnedSuccesses,
   generateChoiceAnswers,
   getCurrentRow,
-  getRowCharacters,
   getUnlockedCharacters,
   isQuizAnswerCorrect,
-  isRowFullyMastered,
+  isUnlockedSetComplete,
   migrateScriptProgress,
   pickWeightedCharacter,
+  registerCorrect,
+  registerWrong,
+  remainingCharacters,
+  requiredSuccesses,
 } from "../utils/quiz";
 
 const STORAGE_KEY = "hirakana-progress";
@@ -106,8 +109,9 @@ export function useQuizGame(
   const scriptData = SCRIPTS[currentScript];
   const scriptProgress = progress[currentScript];
   const currentLevel = scriptProgress.level;
-  const masteredRomaji = scriptProgress.masteredRomaji;
+  const successes = scriptProgress.successes ?? {};
   const scriptMistakes = mistakes[currentScript];
+  const required = requiredSuccesses(maxAppearances);
 
   const unlockedCharacters = useMemo(
     () => getUnlockedCharacters(scriptData, currentLevel),
@@ -115,18 +119,17 @@ export function useQuizGame(
   );
 
   const currentRow = getCurrentRow(currentLevel);
-  const currentRowCharacters = useMemo(
-    () => getRowCharacters(scriptData, currentRow),
-    [scriptData, currentRow]
+  const earnedCount = earnedSuccesses(
+    unlockedCharacters,
+    successes,
+    required
   );
-  const rowMasteredCount = currentRowCharacters.filter((char) =>
-    masteredRomaji.includes(char.romaji)
+  const requiredTotal = unlockedCharacters.length * required;
+  const masteredCount = unlockedCharacters.filter(
+    (char) => (successes[char.romaji] ?? 0) >= required
   ).length;
   const isComplete = currentLevel >= ROW_ORDER.length;
-  const levelProgress = calcLevelProgress(
-    rowMasteredCount,
-    currentRowCharacters.length
-  );
+  const levelProgress = calcLevelProgress(earnedCount, requiredTotal);
   const topMistakes = useMemo(
     () => getTopMistakes(mistakes, currentScript),
     [mistakes, currentScript]
@@ -149,31 +152,43 @@ export function useQuizGame(
   }, [clearFeedbackTimer]);
 
   const loadNextQuestion = useCallback(
-    (masteredRomajiList?: string[]) => {
+    (successesOverride?: Record<string, number>) => {
       const scriptProgress = progressRef.current[currentScript];
       syncAppearanceTracking(currentScript, scriptProgress.level);
 
-      const mastered =
-        masteredRomajiList ?? scriptProgress.masteredRomaji;
-      const rowCharacters = getRowCharacters(
+      const successesNow = successesOverride ?? scriptProgress.successes ?? {};
+      const unlocked = getUnlockedCharacters(
         scriptData,
-        getCurrentRow(scriptProgress.level)
+        scriptProgress.level
       );
-      const remaining = rowCharacters.filter(
-        (c) => !mastered.includes(c.romaji)
+      const remaining = remainingCharacters(
+        unlocked,
+        successesNow,
+        required
       );
-      const pool = remaining.length > 0 ? remaining : rowCharacters;
-      const eligible =
-        maxAppearances === 0
-          ? pool
-          : filterByAppearanceLimit(
-              pool,
-              appearanceCountsRef.current,
-              maxAppearances
-            );
+
+      if (remaining.length === 0) {
+        if (unlocked.length === 0) return;
+        const nextLevel = scriptProgress.level + 1;
+        const next = {
+          ...progressRef.current,
+          [currentScript]: {
+            level: nextLevel,
+            successes: {},
+            failStreaks: {},
+          },
+        };
+        saveProgress(next);
+        progressRef.current = next;
+        setProgress(next);
+        pendingExcludeRomaji.current = undefined;
+        resetAppearanceTracking(currentScript, nextLevel);
+        startLoading();
+        return;
+      }
 
       const next = pickWeightedCharacter(
-        eligible,
+        remaining,
         scriptMistakes,
         pendingExcludeRomaji.current
       );
@@ -181,14 +196,9 @@ export function useQuizGame(
 
       if (!next) return;
 
-      appearanceCountsRef.current = {
-        ...appearanceCountsRef.current,
-        [next.romaji]: (appearanceCountsRef.current[next.romaji] ?? 0) + 1,
-      };
-
       if (quizMode === "choice") {
         const source =
-          answerPool === "all" ? scriptData : unlockedCharacters;
+          answerPool === "all" ? scriptData : unlocked;
         setAnswers(
           generateChoiceAnswers(next, source, answerCount, quizDirection)
         );
@@ -206,13 +216,14 @@ export function useQuizGame(
       answerCount,
       answerPool,
       currentScript,
-      maxAppearances,
       quizDirection,
       quizMode,
+      required,
+      resetAppearanceTracking,
       scriptData,
       scriptMistakes,
+      startLoading,
       syncAppearanceTracking,
-      unlockedCharacters,
     ]
   );
 
@@ -235,7 +246,7 @@ export function useQuizGame(
       setProgress((prev) => {
         const next = {
           ...prev,
-          [script]: { level: 0, masteredRomaji: [] },
+          [script]: { level: 0, successes: {}, failStreaks: {} },
         };
         saveProgress(next);
         return next;
@@ -309,37 +320,43 @@ export function useQuizGame(
 
       clearFeedbackTimer();
       feedbackTimer.current = setTimeout(() => {
-        if (isCorrect) {
-          const romaji = currentCharacter.romaji;
+        const romaji = currentCharacter.romaji;
 
+        if (isCorrect) {
           setProgress((prev) => {
-            const level = prev[currentScript].level;
-            const mastered = prev[currentScript].masteredRomaji;
-            const rowCharacters = getRowCharacters(
-              scriptData,
-              getCurrentRow(level)
+            const scriptState = prev[currentScript];
+            const updated = registerCorrect(
+              scriptState.successes ?? {},
+              scriptState.failStreaks ?? {},
+              romaji,
+              required
             );
-            const alreadyMastered = mastered.includes(romaji);
-            const nextMastered = alreadyMastered
-              ? mastered
-              : [...mastered, romaji];
-            const levelComplete = isRowFullyMastered(
-              rowCharacters,
-              nextMastered
+            const unlocked = getUnlockedCharacters(
+              scriptData,
+              scriptState.level
+            );
+            const levelComplete = isUnlockedSetComplete(
+              unlocked,
+              updated.successes,
+              required
             );
 
             if (levelComplete) {
               const next = {
                 ...prev,
                 [currentScript]: {
-                  level: level + 1,
-                  masteredRomaji: nextMastered,
+                  level: scriptState.level + 1,
+                  successes: {},
+                  failStreaks: {},
                 },
               };
               saveProgress(next);
               queueMicrotask(() => {
                 pendingExcludeRomaji.current = undefined;
-                resetAppearanceTracking(currentScript, level + 1);
+                resetAppearanceTracking(
+                  currentScript,
+                  scriptState.level + 1
+                );
                 startLoading();
               });
               return next;
@@ -348,21 +365,54 @@ export function useQuizGame(
             const next = {
               ...prev,
               [currentScript]: {
-                level,
-                masteredRomaji: nextMastered,
+                level: scriptState.level,
+                successes: updated.successes,
+                failStreaks: updated.failStreaks,
               },
             };
             saveProgress(next);
             queueMicrotask(() => {
               pendingExcludeRomaji.current = romaji;
-              loadNextQuestion(nextMastered);
+              loadNextQuestion(updated.successes);
             });
             return next;
           });
         } else {
           setMistakes((prev) =>
-            recordMistake(prev, currentScript, currentCharacter.romaji)
+            recordMistake(prev, currentScript, romaji)
           );
+          setProgress((prev) => {
+            const scriptState = prev[currentScript];
+            const updated = registerWrong(
+              scriptState.successes ?? {},
+              scriptState.failStreaks ?? {},
+              romaji
+            );
+            const next = {
+              ...prev,
+              [currentScript]: {
+                level: scriptState.level,
+                successes: updated.successes,
+                failStreaks: updated.failStreaks,
+              },
+            };
+            saveProgress(next);
+            return next;
+          });
+
+          const source =
+            answerPool === "all" ? scriptData : unlockedCharacters;
+          if (quizMode === "choice") {
+            setAnswers(
+              generateChoiceAnswers(
+                currentCharacter,
+                source,
+                answerCount,
+                quizDirection
+              )
+            );
+            setQuestionId((id) => id + 1);
+          }
           setPhase("asking");
           setAnswerFeedback(null);
           blurActiveElement();
@@ -376,10 +426,15 @@ export function useQuizGame(
       isComplete,
       phase,
       quizDirection,
+      required,
       scriptData,
       startLoading,
       loadNextQuestion,
       resetAppearanceTracking,
+      answerPool,
+      answerCount,
+      quizMode,
+      unlockedCharacters,
     ]
   );
 
@@ -397,9 +452,9 @@ export function useQuizGame(
     levelProgress,
     isComplete,
     unlockedCount: unlockedCharacters.length,
-    masteredCount: masteredRomaji.length,
-    rowMasteredCount,
-    rowCount: currentRowCharacters.length,
+    masteredCount,
+    earnedCount,
+    requiredTotal,
     totalCharacters: scriptData.length,
     topMistakes,
     handleScriptChange,

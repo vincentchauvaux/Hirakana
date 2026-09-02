@@ -152,8 +152,9 @@ export default function SettingsPanel({
               Répétitions max par niveau
             </label>
             <p className="text-xs text-slate-500 mb-2">
-              Nombre de fois qu&apos;un même caractère peut être proposé avant
-              de passer aux autres.
+              Bonnes réponses exigées par caractère à chaque niveau. Une
+              erreur ne recule pas ; deux erreurs d&apos;affilée enlèvent une
+              réussite, sans dépasser ce maximum.
             </p>
             <div className="grid grid-cols-5 gap-2">
               {MAX_APPEARANCE_OPTIONS.map((count) => (

@@ -1,4 +1,10 @@
-import type { KanaCharacter, QuizDirection, RowId, ScriptProgress } from "../types";
+import type {
+  KanaCharacter,
+  MaxAppearances,
+  QuizDirection,
+  RowId,
+  ScriptProgress,
+} from "../types";
 import { ROW_ORDER } from "../types";
 import { getMistakeWeight } from "./mistakes";
 
@@ -68,6 +74,95 @@ export function generateChoiceAnswers(
   return generateAnswers(correct, values, count);
 }
 
+/** ∞ (0) compte comme 1 réussite requise, sans plafond plus haut. */
+export function requiredSuccesses(maxAppearances: MaxAppearances): number {
+  return maxAppearances === 0 ? 1 : maxAppearances;
+}
+
+export function getCharSuccesses(
+  successes: Record<string, number>,
+  romaji: string
+): number {
+  return Math.max(0, successes[romaji] ?? 0);
+}
+
+export function earnedSuccesses(
+  characters: KanaCharacter[],
+  successes: Record<string, number>,
+  required: number
+): number {
+  return characters.reduce(
+    (sum, char) =>
+      sum + Math.min(required, getCharSuccesses(successes, char.romaji)),
+    0
+  );
+}
+
+export function remainingCharacters(
+  characters: KanaCharacter[],
+  successes: Record<string, number>,
+  required: number
+): KanaCharacter[] {
+  return characters.filter(
+    (char) => getCharSuccesses(successes, char.romaji) < required
+  );
+}
+
+export function isUnlockedSetComplete(
+  characters: KanaCharacter[],
+  successes: Record<string, number>,
+  required: number
+): boolean {
+  return (
+    characters.length > 0 &&
+    remainingCharacters(characters, successes, required).length === 0
+  );
+}
+
+export function registerCorrect(
+  successes: Record<string, number>,
+  failStreaks: Record<string, number>,
+  romaji: string,
+  required: number
+): { successes: Record<string, number>; failStreaks: Record<string, number> } {
+  const current = getCharSuccesses(successes, romaji);
+  return {
+    successes: { ...successes, [romaji]: Math.min(required, current + 1) },
+    failStreaks: { ...failStreaks, [romaji]: 0 },
+  };
+}
+
+/** Première erreur : le compteur ne bouge pas. Deuxième d’affilée : -1 réussite, plafonné à 0. */
+export function registerWrong(
+  successes: Record<string, number>,
+  failStreaks: Record<string, number>,
+  romaji: string
+): { successes: Record<string, number>; failStreaks: Record<string, number> } {
+  const streak = (failStreaks[romaji] ?? 0) + 1;
+  if (streak < 2) {
+    return {
+      successes,
+      failStreaks: { ...failStreaks, [romaji]: streak },
+    };
+  }
+  const current = getCharSuccesses(successes, romaji);
+  return {
+    successes: { ...successes, [romaji]: Math.max(0, current - 1) },
+    failStreaks: { ...failStreaks, [romaji]: 0 },
+  };
+}
+
+function asCountRecord(value: unknown): Record<string, number> {
+  if (!value || typeof value !== "object") return {};
+  const next: Record<string, number> = {};
+  for (const [key, count] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof count === "number" && Number.isFinite(count) && count > 0) {
+      next[key] = count;
+    }
+  }
+  return next;
+}
+
 export function getUnlockedCharacters(
   scriptData: KanaCharacter[],
   level: number
@@ -99,39 +194,37 @@ export function getCurrentRow(level: number): RowId | null {
   return ROW_ORDER[level] ?? null;
 }
 
-/** Reprend une sauvegarde (ex. fin des 5 anciennes rangées) pour enchaîner sur le gojūon. */
+/** Reprend une sauvegarde ancienne (`masteredRomaji`) sans sauter les révisions. */
 export function migrateScriptProgress(
-  saved: Partial<ScriptProgress> | undefined,
+  saved: (Partial<ScriptProgress> & { masteredRomaji?: string[] }) | undefined,
   scriptData: KanaCharacter[]
 ): ScriptProgress {
   let level = typeof saved?.level === "number" ? saved.level : 0;
-  let masteredRomaji = Array.isArray(saved?.masteredRomaji)
-    ? saved.masteredRomaji.filter((item) => typeof item === "string")
-    : [];
-
   if (level < 0) level = 0;
   if (level > ROW_ORDER.length) level = ROW_ORDER.length;
 
   if (level >= ROW_ORDER.length) {
-    return { level: ROW_ORDER.length, masteredRomaji };
+    return { level: ROW_ORDER.length, successes: {}, failStreaks: {} };
   }
 
-  if (level > 0 && masteredRomaji.length === 0) {
-    masteredRomaji = scriptData
-      .filter((char) => {
-        const index = ROW_ORDER.indexOf(char.row);
-        return index >= 0 && index < level;
-      })
-      .map((char) => char.romaji);
+  let successes = asCountRecord(saved?.successes);
+  const failStreaks = asCountRecord(saved?.failStreaks);
+
+  if (
+    Object.keys(successes).length === 0 &&
+    Array.isArray(saved?.masteredRomaji)
+  ) {
+    const currentRow = ROW_ORDER[level];
+    for (const romaji of saved.masteredRomaji) {
+      if (typeof romaji !== "string") continue;
+      const char = scriptData.find((item) => item.romaji === romaji);
+      if (char && char.row === currentRow) {
+        successes = { ...successes, [romaji]: 99 };
+      }
+    }
   }
 
-  while (level < ROW_ORDER.length) {
-    const rowCharacters = getRowCharacters(scriptData, ROW_ORDER[level]);
-    if (!isRowFullyMastered(rowCharacters, masteredRomaji)) break;
-    level += 1;
-  }
-
-  return { level, masteredRomaji };
+  return { level, successes, failStreaks };
 }
 
 export function pickRandomCharacter(

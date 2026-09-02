@@ -26,9 +26,9 @@ export default function App() {
     totalLevels,
     levelProgress,
     isComplete,
-    masteredCount,
-    rowMasteredCount,
-    rowCount,
+    unlockedCount,
+    earnedCount,
+    requiredTotal,
     totalCharacters,
     topMistakes,
     handleScriptChange,
@@ -44,7 +44,7 @@ export default function App() {
   );
 
   const hasProgress =
-    currentLevel > 0 || masteredCount > 0 || isComplete;
+    currentLevel > 0 || earnedCount > 0 || isComplete;
 
   const handleResetScript = (script: typeof currentScript) => {
     resetScriptProgress(script);
@@ -100,8 +100,8 @@ export default function App() {
             <ProgressBar
               progress={levelProgress}
               label={rowLabel ?? "Niveau"}
-              detail={`${rowMasteredCount} / ${rowCount}`}
-              subdetail={`Niveau ${currentLevel + 1} / ${totalLevels} · ${masteredCount} / ${totalCharacters} caractères`}
+              detail={`${earnedCount} / ${requiredTotal}`}
+              subdetail={`Niveau ${currentLevel + 1} / ${totalLevels} · ${unlockedCount} caractères`}
             />
           </div>
 
