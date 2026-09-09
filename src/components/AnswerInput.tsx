@@ -27,7 +27,7 @@ export default function AnswerInput({
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const trimmed = value.trim();
-    if (!trimmed || disabled || answerFeedback) return;
+    if (!trimmed || disabled) return;
     onSubmit(trimmed);
   };
 
@@ -54,7 +54,7 @@ export default function AnswerInput({
             : "Tapez la lecture (romaji)"
         }
         className={inputClass}
-        disabled={disabled || answerFeedback !== null}
+        disabled={disabled}
         autoComplete="off"
         autoCapitalize="off"
         spellCheck={false}
@@ -63,7 +63,7 @@ export default function AnswerInput({
       />
       <button
         type="submit"
-        disabled={!value.trim() || disabled || answerFeedback !== null}
+        disabled={!value.trim() || disabled}
         className="w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:hover:bg-sky-500 transition-colors font-medium"
       >
         Valider

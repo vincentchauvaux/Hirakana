@@ -51,7 +51,7 @@ export default function AnswerGrid({
             type="button"
             className={className}
             onClick={() => onAnswerSelect(answer)}
-            disabled={disabled || answerFeedback !== null}
+            disabled={disabled}
           >
             {answer}
           </button>

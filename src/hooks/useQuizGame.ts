@@ -230,15 +230,55 @@ export function useQuizGame(
   const currentCharacterRef = useRef(currentCharacter);
   currentCharacterRef.current = currentCharacter;
 
-  useEffect(() => {
-    if (quizMode !== "choice") return;
+  const quizSettingsRef = useRef({
+    answerCount,
+    answerPool,
+    quizDirection,
+    quizMode,
+    scriptData,
+  });
+  quizSettingsRef.current = {
+    answerCount,
+    answerPool,
+    quizDirection,
+    quizMode,
+    scriptData,
+  };
+
+  const resyncOpenQuestion = useCallback(() => {
     const character = currentCharacterRef.current;
     if (!character) return;
-    const source = answerPool === "all" ? scriptData : unlockedCharacters;
-    setAnswers(
-      generateChoiceAnswers(character, source, answerCount, quizDirection)
-    );
-  }, [answerCount, answerPool, quizDirection, quizMode]);
+
+    clearFeedbackTimer();
+    const settings = quizSettingsRef.current;
+    if (settings.quizMode === "choice") {
+      const source =
+        settings.answerPool === "all"
+          ? settings.scriptData
+          : getUnlockedCharacters(
+              settings.scriptData,
+              progressRef.current[currentScript].level
+            );
+      setAnswers(
+        generateChoiceAnswers(
+          character,
+          source,
+          settings.answerCount,
+          settings.quizDirection
+        )
+      );
+    } else {
+      setAnswers([]);
+    }
+    setAnswerFeedback(null);
+    setQuestionId((id) => id + 1);
+    setPhase("asking");
+    blurActiveElement();
+  }, [clearFeedbackTimer, currentScript]);
+
+  useEffect(() => {
+    resyncOpenQuestion();
+  }, [answerCount, answerPool, quizDirection, quizMode, resyncOpenQuestion]);
 
   const resetScriptProgress = useCallback(
     (script: ScriptId) => {
@@ -310,7 +350,7 @@ export function useQuizGame(
       const isCorrect = isQuizAnswerCorrect(
         answer,
         currentCharacter,
-        quizDirection
+        quizSettingsRef.current.quizDirection
       );
       setAnswerFeedback({
         answer,
@@ -400,15 +440,21 @@ export function useQuizGame(
             return next;
           });
 
-          const source =
-            answerPool === "all" ? scriptData : unlockedCharacters;
-          if (quizMode === "choice") {
+          const settings = quizSettingsRef.current;
+          if (settings.quizMode === "choice") {
+            const source =
+              settings.answerPool === "all"
+                ? settings.scriptData
+                : getUnlockedCharacters(
+                    settings.scriptData,
+                    progressRef.current[currentScript].level
+                  );
             setAnswers(
               generateChoiceAnswers(
                 currentCharacter,
                 source,
-                answerCount,
-                quizDirection
+                settings.answerCount,
+                settings.quizDirection
               )
             );
             setQuestionId((id) => id + 1);
@@ -425,16 +471,11 @@ export function useQuizGame(
       currentScript,
       isComplete,
       phase,
-      quizDirection,
       required,
       scriptData,
       startLoading,
       loadNextQuestion,
       resetAppearanceTracking,
-      answerPool,
-      answerCount,
-      quizMode,
-      unlockedCharacters,
     ]
   );
 

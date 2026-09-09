@@ -1,6 +1,6 @@
 # Agent — HiraKata
 
-> Dernière mise à jour : 2026-09-02 (révisions cumulatives + répétitions avec recul)
+> Dernière mise à jour : 2026-09-09 (choix synchronisés après changement d’options)
 
 ## Vision
 
@@ -68,6 +68,7 @@ hirakana/
 6. **Feedback boutons** : couleur qui restait sur le dernier choix (réutilisation de romaji + focus mobile)
 7. **Questions empilées** : cycle de phases + démontage complet de la grille entre les questions
 8. **Fin à 25/25** : l'écran Bravo se déclenchait après les 5 anciennes rangées ; la rangée courante suffit désormais à passer au niveau suivant, et une sauvegarde `level: 5` reprend sur は
+9. **Options en cours de quiz** : changer le sens, le nombre de propositions ou le mode laissait parfois les choix dans l’ancien alphabet, ou les boutons désactivés ; la question ouverte est recréée et ré-activée
 
 ## Commandes
 

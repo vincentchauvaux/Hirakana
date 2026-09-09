@@ -65,10 +65,13 @@ export function generateChoiceAnswers(
   count: number,
   direction: QuizDirection
 ): string[] {
+  const pool = source.some((item) => item.romaji === character.romaji)
+    ? source
+    : [...source, character];
   const values =
     direction === "romaji-to-kana"
-      ? source.map((item) => item.char)
-      : source.map((item) => item.romaji);
+      ? pool.map((item) => item.char)
+      : pool.map((item) => item.romaji);
   const correct =
     direction === "romaji-to-kana" ? character.char : character.romaji;
   return generateAnswers(correct, values, count);

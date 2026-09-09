@@ -118,6 +118,7 @@ export default function App() {
               />
               {preferences.quizMode === "text" ? (
                 <AnswerInput
+                  key={questionId}
                   onSubmit={handleAnswerSelect}
                   answerFeedback={answerFeedback}
                   correctAnswer={
